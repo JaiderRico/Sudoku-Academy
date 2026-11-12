@@ -3,7 +3,13 @@
 App para aprender las 23 técnicas avanzadas de Sudoku, pensada para el teléfono.
 La app es una sola página web (`app/index.html`) dentro de un APK de Android.
 
-Descarga directa de la última versión: `https://github.com/<usuario>/<repo>/releases/latest/download/SudokuAcademy.apk`
+Descarga directa de la última versión: https://github.com/JaiderRico/Sudoku-Academy/releases/latest/download/SudokuAcademy.apk
+
+## Actualización automática
+
+Al abrirse (y cada 6 horas si sigue abierta), la app consulta el último Release de este repositorio.
+Si hay una versión mayor que la suya, muestra un aviso con las notas y el botón **Descargar e instalar**.
+Por eso el repositorio debe ser **público** (igual que APP_GYM): la llave de firma solo está en el secreto `FIRMA_PEM`.
 
 ## Cómo se publica una versión
 

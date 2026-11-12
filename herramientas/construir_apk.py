@@ -2,6 +2,8 @@
 """Construye el APK (sin firmar, ya alineado) de Sudoku Academy SIN Android SDK.
 
 La app es un WebView a pantalla completa que abre app/index.html.
+Al construir, '__APP_VERSION__' dentro del HTML se cambia por la versión: así la app sabe
+qué versión es y avisa sola cuando hay un Release más nuevo en GitHub.
 Todo se genera aquí con la librería estándar de Python:
   - classes.dex          (MainActivity escrita a mano en bytecode Dalvik)
   - AndroidManifest.xml  (XML binario)
@@ -191,6 +193,7 @@ T_REF, T_STR, T_DEC, T_HEX, T_BOOL = 0x01, 0x03, 0x10, 0x11, 0x12
 def construir_manifest(version, codigo):
     arbol = ('manifest', [(None, 'package', T_STR, PAQUETE), ('a', 'versionCode', T_DEC, codigo), ('a', 'versionName', T_STR, version)], [
         ('uses-sdk', [('a', 'minSdkVersion', T_DEC, MIN_SDK), ('a', 'targetSdkVersion', T_DEC, TARGET_SDK)], []),
+        ('uses-permission', [('a', 'name', T_STR, 'android.permission.INTERNET')], []),   # para buscar actualizaciones
         ('application', [('a', 'label', T_STR, NOMBRE_APP), ('a', 'icon', T_REF, 0x7f010000), ('a', 'allowBackup', T_BOOL, True)], [
             ('activity', [('a', 'name', T_STR, PAQUETE + '.MainActivity'), ('a', 'exported', T_BOOL, True),
                           ('a', 'configChanges', T_HEX, 0x04a0)], [   # orientation|keyboardHidden|screenSize: girar no reinicia
@@ -284,7 +287,7 @@ def main():
         ('classes.dex', construir_dex(), True),
         ('resources.arsc', construir_arsc(ruta_icono), False),   # Android 11+ exige que vaya sin comprimir y alineado
         (ruta_icono, pathlib.Path(a.icono).read_bytes(), False),
-        ('assets/index.html', pathlib.Path(a.html).read_bytes(), True),
+        ('assets/index.html', pathlib.Path(a.html).read_bytes().replace(b'__APP_VERSION__', a.version.encode()), True),
     ])
     print(f'APK sin firmar: {a.salida}  (versión {a.version}, código {codigo_de_version(a.version)})')
 

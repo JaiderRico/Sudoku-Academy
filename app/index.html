@@ -41,6 +41,13 @@ button:disabled{opacity:.35;cursor:default}
 .ttl .sub{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ttl .main{font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
 
+/* Update banner */
+.upd{flex:none;margin:0 8px 6px;padding:10px 12px;border-radius:12px;background:linear-gradient(135deg,#4f46e5,#0284c7);color:#fff;display:flex;flex-direction:column;gap:8px}
+.upd .t{font-weight:800;font-size:14.5px}
+.upd .d{font-size:12.5px;opacity:.95;max-height:60px;overflow:hidden;white-space:pre-line}
+.upd .row a,.upd .row button{min-height:38px;border-radius:10px;font-weight:800;font-size:14px;display:inline-flex;align-items:center;justify-content:center;padding:0 12px;text-decoration:none}
+.upd .row a{background:#fff;color:#4338ca;flex:1}
+.upd .row button{background:rgba(255,255,255,.18);color:#fff}
 /* Stage tabs */
 .stages{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:0 8px 6px;background:var(--card);border-bottom:1px solid var(--line);flex:none}
 .stages button{padding:6px 2px;border-radius:9px;font-size:12.5px;font-weight:700;color:var(--muted);background:var(--bg);line-height:1.15;display:flex;align-items:center;justify-content:center;gap:4px}
@@ -219,6 +226,7 @@ details.box .in{padding:0 13px 12px;font-size:14.5px;color:var(--ink2)}
     <button id="boardSizeBtn" class="icon-btn" aria-label="Cambiar tamaño del tablero" title="Tamaño del tablero">⤢</button>
   </header>
 
+  <div id="updBar" class="upd hidden" role="status"></div>
   <nav class="stages" id="stageTabs" aria-label="Etapas de la lección">
     <button data-tab="A"><span class="n">1</span>Entender</button>
     <button data-tab="B"><span class="n">2</span>Ejemplo</button>
@@ -2327,6 +2335,9 @@ const SIMPLE_EXPLAIN = {
 // Board always visible on top, explanation scrolls underneath, one clear task at a time.
 // =========================================================================
 const STORAGE_KEY = 'sudoku_academy_progress_v2';
+const APP_VERSION = '__APP_VERSION__';            // el constructor del APK pone aquí la versión real
+const REPO = 'JaiderRico/Sudoku-Academy';
+const APK_URL = `https://github.com/${REPO}/releases/latest/download/SudokuAcademy.apk`;
 const LAST_KEY = 'sudoku_academy_last_v3';
 const $ = id => document.getElementById(id);
 const rankOf = id => TECHNIQUE_ORDER.findIndex(t => t.id === id);
@@ -3008,7 +3019,9 @@ function renderMenu() {
             <span style="flex:1;min-width:0"><div class="nm">${m.shortName}</div><div class="ct">${m.category}</div><div class="dots">${stageDots(p).map(x => `<i class="${x ? 'on' : ''}"></i>`).join('')}</div></span>
             <span class="chip ${cl}">${lab}</span></button>`;
         }).join('')}</div>`).join('') +
-      `<p class="small" style="text-align:center;margin-top:10px">Las 5 rayitas: Entender · Ejemplo · Practicar · Evaluación 1 · Evaluación 2</p>`;
+      `<p class="small" style="text-align:center;margin-top:10px">Las 5 rayitas: Entender · Ejemplo · Practicar · Evaluación 1 · Evaluación 2</p>` +
+      `<div class="box" style="margin-top:14px"><div class="row" style="justify-content:space-between"><div><b>Versión ${enApk() ? APP_VERSION : 'web'}</b><div class="small">${S.updMsg || 'La app revisa sola si hay versión nueva al abrirse.'}</div></div>
+        <button class="btn sec sm" data-act="checkUpd">Buscar</button></div></div>`;
   } else {
     const st = S.progress.stats;
     const mastered = Object.values(S.progress.techniques).filter(t => t.status === 'mastered').length;
@@ -3049,6 +3062,31 @@ function runAudit() {
   let ok = 0, bad = [];
   TECHNIQUE_ORDER.forEach((t, rank) => VERIFIED_LIBRARY[t.id].forEach(ex => { const r = validateExerciseRecord(ex, rank); if (r.valid) ok++; else bad.push(`${ex.id}: ${r.reason}`); }));
   $('auditOut').innerHTML = `${ok} / 69 tableros verificados.` + (bad.length ? '<br>' + bad.join('<br>') : ' Todo correcto ✓');
+}
+
+// ------------------------------------------------------------------ actualizaciones
+const enApk = () => /^\d+\.\d+\.\d+$/.test(APP_VERSION);
+function cmpVer(a, b) { const x = a.split('.').map(Number), y = b.split('.').map(Number); for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) - (y[i] || 0); return 0; }
+async function buscarActualizacion(manual = false) {
+  if (!enApk()) { if (manual) { S.updMsg = 'Las actualizaciones solo se revisan dentro de la app instalada (APK).'; renderMenu(); } return; }
+  try {
+    const r = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, { headers: { Accept: 'application/vnd.github+json' }, cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const rel = await r.json();
+    const nueva = String(rel.tag_name || '').replace(/^v/, '');
+    try { localStorage.setItem('sudoku_upd_check', String(Date.now())); } catch (e) {}
+    if (/^\d+\.\d+\.\d+$/.test(nueva) && cmpVer(nueva, APP_VERSION) > 0) {
+      const notas = String(rel.body || '').replace(/^#+.*$/gm, '').replace(/\*\*/g, '').trim();
+      $('updBar').innerHTML = `<div class="t">⬆️ Nueva versión ${nueva} disponible</div>${notas ? `<div class="d">${notas.replace(/</g, '&lt;')}</div>` : ''}
+        <div class="row"><a href="${APK_URL}">Descargar e instalar</a><button data-upd="later">Luego</button></div>
+        <div style="font-size:11.5px;opacity:.9">Se descarga en el navegador; al terminar, toca la notificación para instalar. Tu progreso se conserva.</div>`;
+      $('updBar').classList.remove('hidden');
+      S.updMsg = `Hay una versión nueva: ${nueva}.`;
+    } else S.updMsg = `Tienes la última versión (${APP_VERSION}).`;
+  } catch (e) {
+    S.updMsg = 'No se pudo revisar (¿sin internet?). Se intentará de nuevo al abrir la app.';
+  }
+  if (manual) renderMenu();
 }
 
 // ------------------------------------------------------------------ main render
@@ -3134,6 +3172,7 @@ const ACTIONS = {
   nextTech() { const k = rankOf(S.techId); loadExercise(TECHNIQUE_ORDER[(k + 1) % TECHNIQUE_ORDER.length].id, 'b0', 'A'); },
   startFree() { startFree(); },
   audit() { runAudit(); },
+  checkUpd() { S.updMsg = 'Revisando…'; renderMenu(); buscarActualizacion(true); },
   resetAll() {
     if (!S.confirmReset) { S.confirmReset = true; return renderMenu(); }
     try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem('sudoku_academy_progress_v1'); } catch (e) {}
@@ -3200,6 +3239,7 @@ function bind() {
     S.filter = S.filter === d ? 0 : d;
     renderBoard(); renderFilterBar();
   });
+  $('updBar').addEventListener('click', e => { if (e.target.closest('[data-upd="later"]')) $('updBar').classList.add('hidden'); });
   $('panel').addEventListener('click', onPanelClick);
   $('dock').addEventListener('click', onPanelClick);
   $('menuMap').addEventListener('click', e => {
@@ -3237,6 +3277,12 @@ window.addEventListener('load', () => {
   bind();
   loadExercise(S.techId, 'b0', 'A');
   setInterval(() => { S.exSec++; }, 1000);
+  setTimeout(() => buscarActualizacion(false), 1500);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    let last = 0; try { last = Number(localStorage.getItem('sudoku_upd_check') || 0); } catch (e) {}
+    if (Date.now() - last > 6 * 3600 * 1000) buscarActualizacion(false);
+  });
 });
 
 </script>
