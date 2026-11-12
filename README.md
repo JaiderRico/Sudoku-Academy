@@ -28,4 +28,3 @@ python3 herramientas/construir_apk.py                 # → trabajo/sin_firmar.a
 pip install cryptography
 python3 herramientas/firmar_apk.py trabajo/sin_firmar.apk SudokuAcademy.apk firma_sudoku.pem
 ```
-"# Sudoku-Academy" 

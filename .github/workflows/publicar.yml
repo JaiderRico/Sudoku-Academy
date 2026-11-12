@@ -1,0 +1,95 @@
+# Construye, revisa, firma y publica Sudoku Academy cada vez que cambia la app o la versión.
+# - El APK se arma con herramientas/construir_apk.py (sin Gradle).
+# - Se revisa con las herramientas oficiales de Android del runner (aapt2 + dexdump).
+# - Se firma con el secreto FIRMA_PEM (Settings → Secrets and variables → Actions). La llave nunca sale del secreto.
+# - Crea (o reemplaza) el Release vX.Y.Z y lo marca como "Latest".
+# - "Run workflow" con solo_probar = true: construye y firma, pero no publica.
+name: Publicar APK
+
+on:
+  push:
+    branches: [main]
+    paths: ['app/**', 'version.txt', 'notas.md', 'herramientas/**']
+  workflow_dispatch:
+    inputs:
+      solo_probar:
+        description: 'Solo construir y firmar (no publica)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publicar-apk
+  cancel-in-progress: false
+
+env:
+  CERT_SHA256: be3952f009d6ec676a4fa7e191edc5f23131cde1b0413b5aed3b900a8755260b
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Herramientas de Android
+        run: |
+          set -euo pipefail
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          BT=$(ls -d "$SDK"/build-tools/* | sort -V | tail -1)
+          echo "BT=$BT" >> "$GITHUB_ENV"
+          echo "VERSION=$(tr -d '[:space:]' < version.txt)" >> "$GITHUB_ENV"
+
+      - name: Construir APK
+        run: python3 herramientas/construir_apk.py --salida trabajo/sin_firmar.apk
+
+      - name: Revisar APK con las herramientas oficiales
+        run: |
+          set -euo pipefail
+          "$BT/aapt2" dump badging trabajo/sin_firmar.apk | head -5
+          unzip -o -q trabajo/sin_firmar.apk classes.dex -d trabajo/dex
+          "$BT/dexdump" -d trabajo/dex/classes.dex > trabajo/dexdump.txt
+          grep -q "MainActivity" trabajo/dexdump.txt
+          echo "✅ Manifest, recursos y código válidos"
+
+      - name: Firmar
+        env:
+          FIRMA_PEM: ${{ secrets.FIRMA_PEM }}
+        run: |
+          set -euo pipefail
+          [ -n "${FIRMA_PEM:-}" ] || { echo "::error::Falta el secreto FIRMA_PEM (Settings → Secrets and variables → Actions)."; exit 1; }
+          K="$RUNNER_TEMP/firma"; mkdir -p "$K"; chmod 700 "$K"; trap 'rm -rf "$K"' EXIT
+          (umask 077; printf '%s\n' "$FIRMA_PEM" > "$K/clave.pem")
+          openssl pkcs8 -topk8 -nocrypt -in "$K/clave.pem" -outform DER -out "$K/key.pk8"
+          openssl x509 -in "$K/clave.pem" -outform DER -out "$K/cert.der"
+          OUT="trabajo/SudokuAcademy_v${VERSION}.apk"
+          "$BT/zipalign" -f -p 4 trabajo/sin_firmar.apk trabajo/alineada.apk
+          "$BT/apksigner" sign --key "$K/key.pk8" --cert "$K/cert.der" --out "$OUT" trabajo/alineada.apk
+          "$BT/apksigner" verify --print-certs "$OUT" | tee trabajo/cert.txt
+          grep -q "$CERT_SHA256" trabajo/cert.txt || { echo "::error::El certificado no coincide con la firma de siempre"; exit 1; }
+          cp "$OUT" trabajo/SudokuAcademy.apk
+          echo "APK=$OUT" >> "$GITHUB_ENV"
+
+      - name: Guardar APK (artefacto)
+        uses: actions/upload-artifact@v4
+        with:
+          name: SudokuAcademy_v${{ env.VERSION }}
+          path: ${{ env.APK }}
+
+      - name: Crear o actualizar el Release
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.solo_probar) }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="v$VERSION"
+          NOTES=(--notes "Sudoku Academy $VERSION")
+          [ -f notas.md ] && NOTES=(--notes-file notas.md)
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" trabajo/SudokuAcademy.apk --clobber
+            gh release edit "$TAG" --latest "${NOTES[@]}"
+          else
+            gh release create "$TAG" "$APK" trabajo/SudokuAcademy.apk --title "Sudoku Academy $VERSION" --latest "${NOTES[@]}"
+          fi
+          echo "Descarga: https://github.com/$GITHUB_REPOSITORY/releases/latest/download/SudokuAcademy.apk"
