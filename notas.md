@@ -1,8 +1,8 @@
-## Sudoku Academy 1.1.0
+## Sudoku Academy 1.2.0
 
-- Ahora se guarda dónde ibas: al abrir la app vuelves a la misma técnica, etapa y paso (y al sudoku que dejaste a medias). Al tocar una técnica en el mapa, se abre en la etapa que te falta.
-- Nueva etapa 5 “Resolver”: sudokus completos, de principio a fin, elegidos para que sí o sí necesites la técnica que aprendiste (12 por técnica). La meta es resolver 3.
-- ⚡ Modo rápido: eliges un número y lo pones tocando todas las casillas donde va.
-- ✏️ Lápiz de notas: anota números pequeños en las casillas (también con el modo rápido). “Rellenar notas” pone todos los candidatos de una vez.
-- Solo 3 errores por tablero: al tercero se acaba y puedes repetirlo o probar otro.
-- 💡 Pista: te dice el siguiente paso lógico y marca el patrón en el tablero.
+- ⏱ Cada sudoku completo guarda tu tiempo, errores y pistas. Al terminar ves si hiciste récord, y en “Mi progreso” está la lista de tus sudokus resueltos.
+- ✨ Autocompletar: al final, cuando lo que falta son solo números obvios, aparece un botón para llenarlos de una vez.
+- Una sola fila de números en “Resolver”: los mismos números que pones también resaltan. Sin casilla vacía elegida, tocar un número lo resalta.
+- 🔦 Resalta hasta 3 números a la vez, cada uno con su color, para encontrar pares y tríos. Mantén presionado un número para sumarlo al resaltado; 🔦✕ lo quita.
+- 🌙 Tema claro, oscuro o automático (en el menú).
+- 🎲 Modo libre nuevo: sudokus completos y difíciles que se resuelven con las técnicas que ya practicaste o dominaste. Mientras más aprendas, más difíciles.

@@ -13,6 +13,8 @@
   --yellow:#fef08a; --pink:#db2777; --pink-l:#fce7f3;
   --board: min(calc(100vw - 34px), 40vh);
   --lbl: 14px;
+  --bd:#cbd5e1; --thick:#1e293b; --alt:#f8fafc; --peer:#f0f7ff; --pat:#cfeafd; --single:#bbf7d0;
+  --h0:#0284c7; --h1:#ea580c; --h2:#9333ea; --h0l:#bfdbfe; --h1l:#fed7aa; --h2l:#e9d5ff; --combo:#fef9c3; --combox:#fde68a;
 }
 @supports (height:100dvh){ :root{ --board: min(calc(100vw - 34px), 40dvh); } }
 body.board-S{ --board: min(calc(100vw - 34px), 32vh); }
@@ -36,7 +38,7 @@ button:disabled{opacity:.35;cursor:default}
 /* Top bar */
 .top{display:flex;align-items:center;gap:8px;padding:4px 8px;background:var(--card);flex:none}
 .icon-btn{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;background:var(--bg);flex:none}
-.icon-btn:active{background:#e2e8f0}
+.icon-btn:active{background:var(--line)}
 .ttl{flex:1;min-width:0}
 .ttl .sub{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ttl .main{font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
@@ -68,29 +70,29 @@ button:disabled{opacity:.35;cursor:default}
 .lbl-row,.lbl-col{display:grid;font-size:9px;color:var(--muted);font-weight:700}
 .lbl-col{grid-template-columns:repeat(9,minmax(0,1fr));text-align:center;align-items:end}
 .lbl-row{grid-template-rows:repeat(9,minmax(0,1fr));align-items:center;justify-items:end;padding-right:2px}
-.board-wrap{position:relative;width:var(--board);height:var(--board);border:2.5px solid #1e293b;border-radius:8px;overflow:hidden;background:#fff}
+.board-wrap{position:relative;width:var(--board);height:var(--board);border:2.5px solid var(--thick);border-radius:8px;overflow:hidden;background:var(--card)}
 .grid{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));grid-template-rows:repeat(9,minmax(0,1fr));width:100%;height:100%}
-.cell{position:relative;min-width:0;min-height:0;overflow:hidden;border-right:1px solid #cbd5e1;border-bottom:1px solid #cbd5e1;display:flex;align-items:center;justify-content:center;background:#fff;cursor:pointer;user-select:none;-webkit-user-select:none}
-.cell.br{border-right:2px solid #1e293b}.cell.bb{border-bottom:2px solid #1e293b}
+.cell{position:relative;min-width:0;min-height:0;overflow:hidden;border-right:1px solid var(--bd);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:center;background:var(--card);cursor:pointer;user-select:none;-webkit-user-select:none}
+.cell.br{border-right:2px solid var(--thick)}.cell.bb{border-bottom:2px solid var(--thick)}
 .cell.c8{border-right:0}.cell.r8{border-bottom:0}
-.cell.alt{background:#f8fafc}
-.cell.peer{background:#f0f7ff}
+.cell.alt{background:var(--alt)}
+.cell.peer{background:var(--peer)}
 .cell.zone{background:#e0f2fe}
 .cell.sel{box-shadow:inset 0 0 0 2.5px var(--sky);z-index:4}
 .cell.picked{background:var(--yellow)!important;box-shadow:inset 0 0 0 2.5px #ca8a04;z-index:3}
-.cell.role-pattern,.cell.role-base,.cell.role-alsA,.cell.role-colorA{background:#cfeafd!important;box-shadow:inset 0 0 0 2px var(--sky)}
+.cell.role-pattern,.cell.role-base,.cell.role-alsA,.cell.role-colorA{background:var(--pat)!important;box-shadow:inset 0 0 0 2px var(--sky)}
 .cell.role-pivot{background:var(--amber-l)!important;box-shadow:inset 0 0 0 2.5px var(--amber)}
 .cell.role-pincer{background:var(--green-l)!important;box-shadow:inset 0 0 0 2px var(--green)}
 .cell.role-roof,.cell.role-bridge,.cell.role-alsB,.cell.role-colorB{background:var(--violet-l)!important;box-shadow:inset 0 0 0 2px var(--violet)}
 .cell.role-fin{background:var(--pink-l)!important;box-shadow:inset 0 0 0 2.5px var(--pink)}
 .cell.role-target{background:var(--red-l)!important;box-shadow:inset 0 0 0 2px var(--red)}
-.cell.role-single{background:#bbf7d0!important;box-shadow:inset 0 0 0 3px #16a34a}
+.cell.role-single{background:var(--single)!important;box-shadow:inset 0 0 0 3px #16a34a}
 .cell.sel.picked,.cell.sel[class*="role-"]{box-shadow:inset 0 0 0 3px var(--sky)}
 .v{font-size:calc(var(--board) / 16);font-weight:800;line-height:1}
 .v.given{color:var(--ink)}
 .v.placed{color:var(--sky)}
 .cands{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));width:100%;height:100%;padding:1px;pointer-events:none}
-.cd{display:flex;align-items:center;justify-content:center;font-size:calc(var(--board) / 31);font-weight:650;color:#475569;line-height:1;border-radius:3px}
+.cd{display:flex;align-items:center;justify-content:center;font-size:calc(var(--board) / 31);font-weight:650;color:var(--ink2);line-height:1;border-radius:3px}
 .cd.f{background:var(--sky);color:#fff;font-weight:800}
 .cd.p{background:var(--green);color:#fff;font-weight:800}
 .cd.t{background:var(--red);color:#fff;font-weight:800;text-decoration:line-through}
@@ -99,7 +101,7 @@ button:disabled{opacity:.35;cursor:default}
 
 .filterbar{display:grid;grid-template-columns:auto repeat(9,1fr) auto;gap:3px;align-items:center;width:calc(var(--board) + var(--lbl) + 2px);padding-top:5px}
 .filterbar .fl{font-size:10.5px;font-weight:700;color:var(--muted);padding-right:2px;line-height:1.1}
-.filterbar button{height:30px;border-radius:8px;background:#fff;border:1.5px solid #cbd5e1;font-weight:800;font-size:15px;color:var(--ink2)}
+.filterbar button{height:30px;border-radius:8px;background:var(--card);border:1.5px solid var(--bd);font-weight:800;font-size:15px;color:var(--ink2)}
 .filterbar button.on{background:var(--sky);border-color:var(--sky);color:#fff}
 .filterbar button.full{opacity:.35}
 .filterbar button.clr{padding:0 8px;font-size:13px}
@@ -115,14 +117,14 @@ button:disabled{opacity:.35;cursor:default}
 .dock:empty{display:none}
 .row{display:flex;gap:8px;align-items:center}
 .pad{display:grid;grid-template-columns:repeat(9,1fr);gap:4px}
-.pad button{height:46px;border-radius:10px;background:var(--bg);border:1px solid #cbd5e1;font-weight:800;font-size:19px}
+.pad button{height:46px;border-radius:10px;background:var(--bg);border:1px solid var(--bd);font-weight:800;font-size:19px}
 .pad button:not(:disabled):active{background:var(--sky);color:#fff}
 .pad.place button{color:var(--sky)}
 .pad.note button{color:var(--indigo);font-size:15px;font-weight:700}
 .pad button.act{background:var(--sky);color:#fff;border-color:var(--sky)}
 .pad.note button.act{background:var(--indigo);border-color:var(--indigo)}
 .tools{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:4px}
-.tools button{height:38px;border-radius:10px;background:var(--bg);border:1px solid #cbd5e1;font-weight:750;font-size:13.5px;padding:0 10px}
+.tools button{height:38px;border-radius:10px;background:var(--bg);border:1px solid var(--bd);font-weight:750;font-size:13.5px;padding:0 10px}
 .tools button.on{background:var(--indigo);border-color:var(--indigo);color:#fff}
 .cell.err{background:var(--red-l)!important;box-shadow:inset 0 0 0 2.5px var(--red)}
 .pad-hint{font-size:11.5px;color:var(--muted);text-align:center}
@@ -131,7 +133,7 @@ button:disabled{opacity:.35;cursor:default}
 .btn.pri{background:var(--sky);color:#fff}
 .btn.ok{background:var(--green);color:#fff}
 .btn.ind{background:var(--indigo);color:#fff}
-.btn.sec{background:var(--bg);color:var(--ink2);border:1px solid #cbd5e1}
+.btn.sec{background:var(--bg);color:var(--ink2);border:1px solid var(--bd)}
 .btn.ghost{background:transparent;color:var(--sky);padding:8px 10px;min-height:40px}
 .btn.sm{min-height:38px;padding:7px 11px;font-size:13.5px;border-radius:10px}
 .grow{flex:1}
@@ -141,10 +143,10 @@ button:disabled{opacity:.35;cursor:default}
 .h2{font-size:18px;font-weight:800;line-height:1.25}
 .p{font-size:15px;color:var(--ink2)}
 .small{font-size:12.5px;color:var(--muted)}
-.box{border-radius:12px;padding:11px 13px;border:1px solid var(--line);background:#fff}
+.box{border-radius:12px;padding:11px 13px;border:1px solid var(--line);background:var(--card)}
 .box.blue{background:#f0f9ff;border-color:#bae6fd}
-.box.amber{background:#fffbeb;border-color:#fde68a}
-.box.green{background:#f0fdf4;border-color:#bbf7d0}
+.box.amber{background:var(--card)beb;border-color:#fde68a}
+.box.green{background:#f0fdf4;border-color:var(--single)}
 .box.red{background:#fef2f2;border-color:#fecaca}
 .box.violet{background:#faf5ff;border-color:#e9d5ff}
 .box b.t{display:block;font-size:13px;margin-bottom:3px}
@@ -163,16 +165,16 @@ details.box[open] summary::after{content:"－"}
 details.box .in{padding:0 13px 12px;font-size:14.5px;color:var(--ink2)}
 
 .progress{display:flex;gap:4px}
-.progress i{flex:1;height:5px;border-radius:3px;background:#e2e8f0}
+.progress i{flex:1;height:5px;border-radius:3px;background:var(--line)}
 .progress i.on{background:var(--sky)}
 .progress i.ok{background:var(--green)}
 .choices{display:flex;flex-direction:column;gap:8px}
-.choice{text-align:left;padding:12px 13px;border-radius:12px;border:1.5px solid #cbd5e1;background:#fff;font-weight:650;font-size:14.5px;min-height:48px;line-height:1.35}
+.choice{text-align:left;padding:12px 13px;border-radius:12px;border:1.5px solid var(--bd);background:var(--card);font-weight:650;font-size:14.5px;min-height:48px;line-height:1.35}
 .choice:active{background:#f0f9ff}
 .choice.right{border-color:var(--green);background:#f0fdf4}
 .choice.wrong{border-color:var(--red);background:#fef2f2}
 .digits{display:grid;grid-template-columns:repeat(9,1fr);gap:4px}
-.digits button{height:44px;border-radius:10px;border:1.5px solid #cbd5e1;font-weight:800;font-size:18px;background:#fff}
+.digits button{height:44px;border-radius:10px;border:1.5px solid var(--bd);font-weight:800;font-size:18px;background:var(--card)}
 .digits button.wrong{border-color:var(--red);background:#fef2f2;color:var(--red)}
 .donelist{display:flex;flex-direction:column;gap:4px}
 .donelist div{font-size:13px;color:#166534;display:flex;gap:6px}
@@ -188,24 +190,24 @@ details.box .in{padding:0 13px 12px;font-size:14.5px;color:var(--ink2)}
 .screen{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;flex-direction:column}
 .screen .top{position:sticky;top:0}
 .screen .body{flex:1;overflow-y:auto;padding:12px 12px 40px;display:flex;flex-direction:column;gap:14px;max-width:760px;width:100%;margin:0 auto}
-.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:#e2e8f0;padding:4px;border-radius:12px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--line);padding:4px;border-radius:12px}
 .seg button{padding:8px;border-radius:9px;font-weight:750;font-size:14px;color:var(--ink2)}
-.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
-.lvl{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.lvl{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
 .lvl-h{padding:12px 14px;border-bottom:1px solid var(--line)}
 .lvl-h .h{font-weight:800;font-size:15.5px}
-.tech{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid #f1f5f9;width:100%;text-align:left}
+.tech{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line);width:100%;text-align:left}
 .tech:last-child{border-bottom:0}
-.tech:active{background:#f8fafc}
+.tech:active{background:var(--alt)}
 .tech .num{width:28px;height:28px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--muted);flex:none}
 .tech.cur .num{background:var(--sky);color:#fff}
 .tech .nm{font-weight:750;font-size:14.5px;line-height:1.25}
 .tech .ct{font-size:11.5px;color:var(--muted)}
 .dots{display:flex;gap:3px;margin-top:3px}
-.dots i{width:16px;height:4px;border-radius:2px;background:#e2e8f0}
+.dots i{width:16px;height:4px;border-radius:2px;background:var(--line)}
 .dots i.on{background:var(--green)}
 .statgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
 .stat .k{font-size:11.5px;color:var(--muted)}
 .stat .val{font-size:22px;font-weight:800}
 .free-card{background:linear-gradient(135deg,#4f46e5,#0284c7);color:#fff;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px}
@@ -221,6 +223,50 @@ details.box .in{padding:0 13px 12px;font-size:14.5px;color:var(--ink2)}
   #boardSizeBtn{display:none}
 }
 
+
+/* Resaltado de varios números (hasta 3, cada uno con su color) */
+.cell.same.s0{background:var(--h0l)!important}.cell.same.s0 .v{color:#1d4ed8}
+.cell.same.s1{background:var(--h1l)!important}.cell.same.s1 .v{color:#c2410c}
+.cell.same.s2{background:var(--h2l)!important}.cell.same.s2 .v{color:#7e22ce}
+.cd.f0{background:var(--h0);color:#fff;font-weight:800}
+.cd.f1{background:var(--h1);color:#fff;font-weight:800}
+.cd.f2{background:var(--h2);color:#fff;font-weight:800}
+.cell.combo{background:var(--combo)}
+.cell.combo-x{background:var(--combox);box-shadow:inset 0 0 0 2px var(--amber)}
+.pad button.hl0{box-shadow:inset 0 -5px 0 var(--h0)}.pad button.hl1{box-shadow:inset 0 -5px 0 var(--h1)}.pad button.hl2{box-shadow:inset 0 -5px 0 var(--h2)}
+.tools.t5{grid-template-columns:1fr 1fr 1fr auto auto}
+.clock{font-variant-numeric:tabular-nums;font-weight:800}
+.hist{display:flex;flex-direction:column}
+.hist div{display:flex;justify-content:space-between;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);font-size:13px}
+.hist div:last-child{border-bottom:0}
+.seg3{grid-template-columns:1fr 1fr 1fr}
+
+/* Tema oscuro */
+body.dark{--ink:#e5e7eb;--ink2:#cbd5e1;--muted:#94a3b8;--line:#334155;--bg:#0b1120;--card:#151e2e;
+  --bd:#475569;--thick:#94a3b8;--alt:#1a2436;--peer:#1e3a5f;--pat:#0c4a6e;--single:#14532d;
+  --sky-l:#0c4a6e;--green-l:#064e3b;--red-l:#7f1d1d;--amber-l:#78350f;--violet-l:#4c1d95;--pink-l:#831843;--yellow:#713f12;
+  --h0l:#1e40af;--h1l:#9a3412;--h2l:#6b21a8;--combo:#3f3a12;--combox:#713f12;color-scheme:dark}
+body.dark .v.placed{color:#38bdf8}
+body.dark .cell.same .v{color:#fff!important}
+body.dark .cell.zone{background:#0c3550}
+body.dark .panel-col{box-shadow:none}
+body.dark .box.blue{background:#0c2a40;border-color:#075985}
+body.dark .box.amber{background:#2d1f06;border-color:#92400e}
+body.dark .box.green{background:#052e1b;border-color:#166534}
+body.dark .box.red{background:#3b0d0d;border-color:#991b1b}
+body.dark .box.violet{background:#2a1145;border-color:#6b21a8}
+body.dark .msg.success{background:#14532d;color:#dcfce7}
+body.dark .msg.error{background:#7f1d1d;color:#fee2e2}
+body.dark .msg.warn{background:#78350f;color:#fef3c7}
+body.dark .msg.info{background:#0c4a6e;color:#e0f2fe}
+body.dark .choice:active{background:#0c2a40}
+body.dark .choice.right{background:#052e1b}
+body.dark .choice.wrong,body.dark .digits button.wrong{background:#3b0d0d}
+body.dark .chip.g{color:#a7f3d0}body.dark .chip.b{color:#bae6fd}body.dark .chip.a{color:#fde68a}
+body.dark .donelist div{color:#86efac}
+body.dark .stages button.done:not(.on){color:#6ee7b7}
+body.dark .cd.x{color:#4ade80}
+body.dark .steps-dots button.seen{background:#312e81;color:#c7d2fe}
 </style>
 </head>
 <body>
@@ -2358,14 +2404,14 @@ const S = {
   techId: 'locked_candidates', ref: 'b0', stage: 'A', free: false,
   ex: null, step: null, ped: null,
   givens: [], grid: [], cands: [], solution: [],
-  eliminated: [], picked: [], selected: -1, filter: 0,
+  eliminated: [], picked: [], selected: -1, hl: [], theme: 'light',
   obsIdx: 0, playTimer: null,
   flow: null, hint: 0, showTargets: false, usedAuto: false, undo: [],
   msg: null, singles: [], singleShown: null,
   dynamic: {}, variantSerial: {}, freeQueue: [],
   exSec: 0, boardSize: 'M', menuTab: 'map',
   retos: {}, reto: null, retoUndo: [], retoHint: null, retoFlash: -1,
-  progress: { techniques: {}, stats: freshStats() }
+  progress: { techniques: {}, stats: freshStats(), history: [], freeSeen: [] }
 };
 function freshStats() {
   return { identifiedCount: 0, correctEliminations: 0, errorsCount: 0, hintsUsed: 0, totalTimeSeconds: 0, completedExercises: 0, score: 0, autonomySum: 0, autonomySamples: 0 };
@@ -2387,6 +2433,8 @@ function loadProgress() {
       const parsed = JSON.parse(raw);
       if (parsed && parsed.techniques) for (const k of Object.keys(parsed.techniques)) if (S.progress.techniques[k]) Object.assign(S.progress.techniques[k], parsed.techniques[k]);
       if (parsed && parsed.stats) Object.assign(S.progress.stats, parsed.stats);
+      if (parsed && Array.isArray(parsed.history)) S.progress.history = parsed.history;
+      if (parsed && Array.isArray(parsed.freeSeen)) S.progress.freeSeen = parsed.freeSeen;
     }
   } catch (e) {}
   initDefaultProgress();
@@ -2394,12 +2442,13 @@ function loadProgress() {
     const last = JSON.parse(localStorage.getItem(LAST_KEY) || 'null');
     if (last && TECHNIQUE_META[last.techId]) S.techId = last.techId;
     if (last && ['S', 'M', 'L'].includes(last.boardSize)) S.boardSize = last.boardSize;
+    if (last && ['light', 'dark', 'auto'].includes(last.theme)) S.theme = last.theme;
   } catch (e) {}
 }
 function saveProgress() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(S.progress));
-    localStorage.setItem(LAST_KEY, JSON.stringify({ techId: S.techId, boardSize: S.boardSize }));
+    localStorage.setItem(LAST_KEY, JSON.stringify({ techId: S.techId, boardSize: S.boardSize, theme: S.theme }));
   } catch (e) {}
   saveSession();
 }
@@ -2567,6 +2616,32 @@ function setMsg(text, type = 'info') {
   clearTimeout(S.msgTimer);
   if (type === 'success') S.msgTimer = setTimeout(() => { if (S.msg === m) { S.msg = null; renderPanel(); } }, 5000);
 }
+// ------------------------------------------------------------------ resaltar (hasta 3 números, cada uno con su color)
+function hlToggle(d) {
+  const k = S.hl.indexOf(d);
+  if (k >= 0) S.hl.splice(k, 1); else { if (S.hl.length >= 3) S.hl.shift(); S.hl.push(d); }
+}
+function hlSet(d) { if (!d) S.hl = []; else if (!S.hl.includes(d)) S.hl = [d]; }
+// Clases de una casilla según el resaltado: número colocado, o (con 2–3 números) casillas con esa combinación.
+function hlCellCls(value, candMask) {
+  if (!S.hl.length) return [];
+  if (value) { const k = S.hl.indexOf(value); return k >= 0 ? ['same', 's' + k] : []; }
+  if (S.hl.length < 2 || !candMask) return [];
+  const m = digitsToMask(S.hl);
+  if ((candMask & ~m) === 0 && countBits(candMask) >= 2) return ['combo-x'];
+  if ((candMask & m) === m) return ['combo'];
+  return [];
+}
+const hlCd = d => { const k = S.hl.indexOf(d); return k >= 0 ? 'f' + k : ''; };
+const fmtTime = sec => { sec = Math.max(0, Math.round(sec || 0)); const h = Math.floor(sec / 3600), m = Math.floor(sec / 60) % 60, x = sec % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
+
+// ------------------------------------------------------------------ tema claro / oscuro
+function applyTheme() {
+  const dark = S.theme === 'dark' || (S.theme === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+  document.body.classList.toggle('dark', dark);
+  const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', dark ? '#151e2e' : '#ffffff');
+}
+
 function snapshot() {
   S.undo.push({ grid: S.grid.slice(), cands: S.cands.slice(), eliminated: S.eliminated.map(e => ({ ...e })) });
   if (S.undo.length > 40) S.undo.shift();
@@ -2721,14 +2796,18 @@ const LEGEND = {
   picked: ['Tu selección', '#fef08a', '#ca8a04'], 'role-single': ['¡Ya se puede colocar!', '#bbf7d0', '#16a34a'],
   cdp: ['Número del patrón', '#059669', '#059669'], cdt: ['Se elimina', '#dc2626', '#dc2626'],
   cdx: ['Ya eliminado', '#fff', '#16a34a'], cdf: ['Candidato resaltado', '#0284c7', '#0284c7'], same: ['Número resaltado', '#bfdbfe', '#1d4ed8'],
+  combo: ['Tiene todos los resaltados', '#fef9c3', '#eab308'], 'combo-x': ['Solo tiene números resaltados (par/trío desnudo)', '#fde68a', '#d97706'],
   link: ['Línea = conexión lógica', '#fff', '#0284c7']
 };
 
 function renderFilterBar() {
   const placed = d => S.grid.filter(v => v === d).length;
-  $('filterBar').innerHTML = `<span class="fl">Resaltar</span>` +
-    [1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => `<button class="mono ${S.filter === d ? 'on' : ''} ${placed(d) === 9 ? 'full' : ''}" data-filter="${d}" aria-label="Resaltar el ${d}">${d}</button>`).join('') +
-    `<button class="clr" data-filter="0" aria-label="Quitar resaltado" ${S.filter ? '' : 'disabled'}>✕</button>`;
+  // En “Resolver” los números de abajo ya resaltan: no se repite la fila.
+  $('filterBar').classList.toggle('hidden', S.stage === 'R');
+  const col = ['var(--h0)', 'var(--h1)', 'var(--h2)'];
+  $('filterBar').innerHTML = `<span class="fl">Resaltar<br>(hasta 3)</span>` +
+    [1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => { const k = S.hl.indexOf(d); return `<button class="mono ${k >= 0 ? 'on' : ''} ${placed(d) === 9 ? 'full' : ''}" ${k >= 0 ? `style="background:${col[k]};border-color:${col[k]}"` : ''} data-filter="${d}" aria-label="Resaltar el ${d}">${d}</button>`; }).join('') +
+    `<button class="clr" data-filter="0" aria-label="Quitar resaltado" ${S.hl.length ? '' : 'disabled'}>✕</button>`;
 }
 
 function renderBoard() {
@@ -2758,7 +2837,7 @@ function renderBoard() {
     if (c === 8) cls.push('c8'); if (r === 8) cls.push('r8');
     if (b % 2 === 1) cls.push('alt');
     if (i === sel) cls.push('sel'); else if (peers.has(i)) cls.push('peer');
-    if (S.filter && S.grid[i] === S.filter) { cls.push('same'); used.add('same'); }
+    for (const h of hlCellCls(S.grid[i], S.grid[i] ? 0 : S.cands[i])) { cls.push(h); if (!/^s\d/.test(h)) used.add(h); }
     if (zone.has(i)) { cls.push('zone'); used.add('zone'); }
     if (picked.has(i)) { cls.push('picked'); used.add('picked'); }
     if (i === single) { cls.push('role-single'); used.add('role-single'); }
@@ -2780,7 +2859,7 @@ function renderBoard() {
           txt = d;
           if (vis.targets && isT) { k = 't'; used.add('cdt'); }
           else if (vis.cands && pattern.has(i) && pDigits.includes(d)) { k = 'p'; used.add('cdp'); }
-          else if (S.filter === d) { k = 'f'; used.add('cdf'); }
+          else if (hlCd(d)) { k = hlCd(d); used.add('cdf'); }
         }
         h += `<div class="cd ${k}">${txt}</div>`;
       }
@@ -2820,8 +2899,8 @@ function renderOverlay(vis) {
 function renderHeader() {
   const meta = TECHNIQUE_META[S.techId];
   const hidden = S.free || ((S.stage === 'D' || S.stage === 'E') && !passed('tech'));
-  $('techSub').textContent = S.free ? 'Modo libre · ¿qué técnica es?' : `Nivel ${meta.level} · Técnica ${meta.order} de 23 · ${meta.category}`;
-  $('techTitle').textContent = hidden && !(S.free && passed('tech')) ? (S.free ? 'Tablero sorpresa' : 'Evaluación · técnica oculta') : meta.shortName;
+  $('techSub').textContent = S.free ? (S.stage === 'R' ? 'Modo libre · con tus técnicas' : 'Modo libre · ¿qué técnica es?') : `Nivel ${meta.level} · Técnica ${meta.order} de 23 · ${meta.category}`;
+  $('techTitle').textContent = S.free && S.stage === 'R' ? 'Sudoku difícil' : hidden && !(S.free && passed('tech')) ? (S.free ? 'Tablero sorpresa' : 'Evaluación · técnica oculta') : meta.shortName;
   const tabs = $('stageTabs');
   tabs.classList.toggle('hidden', S.free);
   const p = prog();
@@ -3029,7 +3108,7 @@ function renderMenu() {
   map.classList.toggle('hidden', S.menuTab !== 'map');
   stats.classList.toggle('hidden', S.menuTab !== 'stats');
   if (S.menuTab === 'map') {
-    map.innerHTML = `<div class="free-card"><div style="font-weight:800;font-size:16px">🎲 Modo libre</div><div style="font-size:13.5px;opacity:.95">Tablero sorpresa: tú descubres qué técnica sirve. Ideal para entrenar el reconocimiento.</div><button class="btn" data-act="startFree">Empezar</button></div>` +
+    map.innerHTML = `<div class="free-card"><div style="font-weight:800;font-size:16px">🎲 Modo libre</div><div style="font-size:13.5px;opacity:.95">Sudokus completos y difíciles que se resuelven con las técnicas que ya practicaste o dominaste (${learnedRanks().size} de 23). Mientras más aprendas, más difíciles.</div><button class="btn" data-act="startFree">${S.retos.__free && !S.retos.__free.done && !S.retos.__free.lost ? 'Seguir el sudoku' : 'Empezar'}</button></div>` +
       CURRICULUM_LEVELS.map(l => `<div class="lvl" style="margin-top:14px"><div class="lvl-h"><div class="h">${l.name}</div><div class="small">${l.badge}</div></div>
         ${TECHNIQUE_ORDER.filter(t => TECHNIQUE_META[t.id].level === l.level).map(t => {
           const m = TECHNIQUE_META[t.id], p = prog(t.id), [lab, cl] = statusLabel(p.status);
@@ -3038,6 +3117,7 @@ function renderMenu() {
             <span class="chip ${cl}">${lab}</span></button>`;
         }).join('')}</div>`).join('') +
       `<p class="small" style="text-align:center;margin-top:10px">Las 6 rayitas: Entender · Ejemplo · Practicar · Evaluación 1 · Evaluación 2 · Resolver 3 sudokus</p>` +
+      `<div class="box" style="margin-top:14px"><b class="t">Tema</b><div class="seg seg3" style="margin-top:6px">${[['light', '☀️ Claro'], ['dark', '🌙 Oscuro'], ['auto', '📱 Automático']].map(([k, t]) => `<button data-theme="${k}" class="${S.theme === k ? 'on' : ''}">${t}</button>`).join('')}</div></div>` +
       `<div class="box" style="margin-top:14px"><div class="row" style="justify-content:space-between"><div><b>Versión ${enApk() ? APP_VERSION : 'web'}</b><div class="small">${S.updMsg || 'La app revisa sola si hay versión nueva al abrirse.'}</div></div>
         <button class="btn sec sm" data-act="checkUpd">Buscar</button></div></div>`;
   } else {
@@ -3052,7 +3132,10 @@ function renderMenu() {
         <div class="stat"><div class="k">Pistas usadas</div><div class="val" style="color:var(--amber)">${st.hintsUsed}</div></div>
         <div class="stat"><div class="k">Sudokus completos</div><div class="val" style="color:var(--indigo)">${st.retosSolved || 0}</div></div>
         <div class="stat"><div class="k">Autonomía media</div><div class="val">${avg}%</div></div>
+        <div class="stat"><div class="k">Mejor tiempo (libre)</div><div class="val">${(() => { const f = S.progress.history.filter(h => h.free); return f.length ? fmtTime(Math.min(...f.map(h => h.sec))) : '—'; })()}</div></div>
       </div>
+      <div class="lvl" style="margin-top:14px"><div class="lvl-h"><div class="h">⏱ Mis sudokus resueltos</div><div class="small">Tiempo, errores y pistas de cada sudoku completo (los últimos 30).</div></div>
+        <div class="hist">${S.progress.history.slice(0, 30).map(h => `<div><span style="min-width:0"><b>${h.free ? '🎲 Libre' : TECHNIQUE_META[h.tech] ? TECHNIQUE_META[h.tech].shortName : h.tech}</b><br><span class="small">${new Date(h.t).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })} ${new Date(h.t).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</span></span><span style="text-align:right"><b class="clock">${fmtTime(h.sec)}</b><br><span class="small">❌ ${h.errors} · 💡 ${h.hints}${h.auto ? ' · ✨' : ''}</span></span></div>`).join('') || '<div class="small">Todavía no hay sudokus terminados. Al resolver uno, aquí queda su tiempo.</div>'}</div></div>
       <div class="lvl" style="margin-top:14px">${TECHNIQUE_ORDER.map(t => {
         const m = TECHNIQUE_META[t.id], p = prog(t.id), [lab, cl] = statusLabel(p.status);
         return `<div class="tech"><span class="num">${m.order}</span><span style="flex:1;min-width:0"><div class="nm">${m.shortName}</div>
@@ -3068,14 +3151,8 @@ function openMenu() { stopPlay(); S.confirmReset = false; renderMenu(); $('menu'
 function closeMenu() { $('menu').classList.add('hidden'); }
 
 function startFree() {
-  if (!S.freeQueue.length) {
-    const all = [];
-    for (const t of TECHNIQUE_ORDER) for (const b of [0, 1, 2]) all.push({ techId: t.id, ref: 'b' + b });
-    S.freeQueue = shuffle(all);
-  }
-  const it = S.freeQueue.shift();
-  closeMenu();
-  loadExercise(it.techId, it.ref, 'D', true);
+  const r = S.retos.__free;
+  openFree(!r || r.done || r.lost);
 }
 function runAudit() {
   let ok = 0, bad = [];
@@ -3114,12 +3191,12 @@ const RETOS_KEY = 'sudoku_academy_retos_v1';
 function saveSession() {
   try {
     let s;
-    if (S.stage === 'R') s = { v: 1, stage: 'R', techId: S.techId, filter: S.filter };
+    if (S.stage === 'R') s = { v: 1, stage: 'R', techId: S.techId, hl: S.hl, free: !!S.free };
     else if (S.ex) s = {
       v: 1, techId: S.techId, ref: S.ref, stage: S.stage, free: S.free, ex: { ...S.ex, cands: Array.from(S.ex.cands) },
       grid: S.grid, cands: Array.from(S.cands), eliminated: S.eliminated, picked: S.picked, selected: S.selected,
       hint: S.hint, showTargets: S.showTargets, usedAuto: S.usedAuto, obsIdx: S.obsIdx, flow: S.flow,
-      singles: S.singles, singleShown: S.singleShown, filter: S.filter, exSec: S.exSec
+      singles: S.singles, singleShown: S.singleShown, hl: S.hl, exSec: S.exSec
     };
     if (s) localStorage.setItem(SESSION_KEY, JSON.stringify(s));
     localStorage.setItem(RETOS_KEY, JSON.stringify(S.retos));
@@ -3134,7 +3211,12 @@ function restoreSession() {
   try { s = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch (e) {}
   try {
     if (s && s.v === 1 && TECHNIQUE_META[s.techId]) {
-      if (s.stage === 'R') { openReto(s.techId); if (s.filter) { S.filter = s.filter; render(); } return; }
+      if (s.stage === 'R') {
+        if (s.free && S.retos.__free) openFree(); else openReto(s.techId);
+        const h = Array.isArray(s.hl) ? s.hl : s.filter ? [s.filter] : [];
+        if (h.length) { S.hl = h.slice(0, 3); render(); }
+        return;
+      }
       if (s.ex && s.ex.grid && s.ex.solution) {
         const m = /^v(\d)_(\d+)$/.exec(s.ref || '');
         if (m) { S.variantSerial[s.techId + '_' + m[1]] = Number(m[2]); }
@@ -3143,7 +3225,7 @@ function restoreSession() {
           Object.assign(S, {
             grid: s.grid, cands: s.cands, eliminated: s.eliminated || [], picked: s.picked || [], selected: s.selected ?? -1,
             hint: s.hint || 0, showTargets: !!s.showTargets, usedAuto: !!s.usedAuto, obsIdx: s.obsIdx || 0,
-            flow: s.flow || S.flow, singles: s.singles || [], singleShown: s.singleShown || null, filter: s.filter || 0, exSec: s.exSec || 0
+            flow: s.flow || S.flow, singles: s.singles || [], singleShown: s.singleShown || null, hl: Array.isArray(s.hl) ? s.hl.slice(0, 3) : s.filter ? [s.filter] : [], exSec: s.exSec || 0
           });
           if (S.stage === 'B') return setObs(S.obsIdx);
           render(); return;
@@ -3194,7 +3276,7 @@ function newReto(techId, same = false) {
   const r = {
     base: baseIdx, n: (old && old.n || 0) + (same ? 0 : 1), givens, solution,
     grid: givens.split('').map(Number), notes: new Array(81).fill(0),
-    errors: 0, hints: 0, done: false, lost: false, pencil: old ? !!old.pencil : false, quick: old ? !!old.quick : false, active: 0
+    errors: 0, hints: 0, done: false, lost: false, pencil: old ? !!old.pencil : false, quick: old ? !!old.quick : false, active: 0, sec: 0, auto: 0
   };
   S.retos[techId] = r; S.retoUndo = []; S.retoHint = null; S.retoFlash = -1;
   return r;
@@ -3204,7 +3286,7 @@ function openReto(techId, fresh = false) {
   Object.assign(S, { techId, stage: 'R', free: false, ref: 'reto', step: null, flow: null, ped: null, selected: -1, picked: [], msg: null, singleShown: null });
   if (fresh || !S.retos[techId]) newReto(techId);
   S.reto = S.retos[techId]; S.retoUndo = S.retoUndo || []; S.retoHint = null; S.retoFlash = -1;
-  if (S.reto && S.reto.quick && S.reto.active) S.filter = S.reto.active;
+  if (S.reto && S.reto.quick && S.reto.active) hlSet(S.reto.active);
   const p = prog(techId);
   if (p.status === 'not_started') { p.status = 'learning'; recompute(techId); }
   saveProgress();
@@ -3222,7 +3304,7 @@ function retoCell(idx) {
   S.retoHint = null;
   if (r.quick && r.active && !retoLocked()) { S.selected = idx; retoInput(idx, r.active); return; }
   S.selected = idx;
-  if (r.grid[idx]) S.filter = r.grid[idx];
+  if (r.grid[idx]) hlSet(r.grid[idx]);
   render();
 }
 function retoDigit(d) {
@@ -3230,13 +3312,16 @@ function retoDigit(d) {
   S.retoHint = null;
   if (r.quick) {
     r.active = r.active === d ? 0 : d;
-    S.filter = r.active;
+    if (r.active) hlSet(r.active); else S.hl = S.hl.filter(x => x !== d);
     if (r.active) setMsg(`⚡ ${r.pencil ? 'Nota' : 'Número'} ${d} listo: toca las casillas donde ${r.pencil ? 'quieras anotarlo' : 'va'}.`, 'info');
     else S.msg = null;
     return render();
   }
-  if (S.selected < 0) { setMsg('Toca primero una casilla del tablero y luego el número.', 'info'); return render(); }
-  retoInput(S.selected, d);
+  // Sin casilla vacía elegida, el número solo se resalta (tocarlo otra vez lo quita).
+  const c = S.selected;
+  if (c < 0 || r.givens[c] !== '0' || r.grid[c]) { hlToggle(d); S.msg = null; saveSession(); return render(); }
+  hlSet(d);
+  retoInput(c, d);
 }
 function retoInput(cell, d) {
   const r = S.reto;
@@ -3272,8 +3357,12 @@ function retoInput(cell, d) {
 function retoFinish() {
   const r = S.reto, p = prog();
   r.done = true; r.active = 0;
-  p.retosSolved = (p.retosSolved || 0) + 1;
-  if (!r.hints) p.retosSinPistas = (p.retosSinPistas || 0) + 1;
+  S.progress.history.unshift({ t: Date.now(), tech: r.tech || S.techId, free: !!r.free, sec: r.sec || 0, errors: r.errors, hints: r.hints, auto: r.auto || 0 });
+  if (S.progress.history.length > 300) S.progress.history.length = 300;
+  if (!r.free) {
+    p.retosSolved = (p.retosSolved || 0) + 1;
+    if (!r.hints) p.retosSinPistas = (p.retosSinPistas || 0) + 1;
+  }
   S.progress.stats.retosSolved = (S.progress.stats.retosSolved || 0) + 1;
   S.progress.stats.completedExercises++;
   S.progress.stats.score += r.hints ? 150 : 400;
@@ -3322,7 +3411,7 @@ function retoHintState() {
 }
 function retoHintStep() {
   const { g, c, badNotes } = retoHintState();
-  const ranks = retoRanks(S.techId), steps = [];
+  const ranks = S.reto.ranks || retoRanks(S.techId), steps = [];
   for (let k = 0; k < 40; k++) {
     const s = rawSingle(g, c);
     if (s) return { single: s, steps, badNotes };
@@ -3349,11 +3438,87 @@ function retoHint() {
     const st = h.steps[0].st, id = TECHNIQUE_ORDER[h.steps[0].rk].id, m = TECHNIQUE_META[id];
     const direct = h.steps.length === 1 && h.single;
     S.retoHint = { pattern: st.patternCells || [], targets: st.eliminations.map(e => e.cell), single: direct ? h.single.cell : -1 };
-    const esta = id === S.techId ? ' ¡Es la técnica de esta lección!' : '';
+    const esta = id === S.techId && !S.free ? ' ¡Es la técnica de esta lección!' : '';
     const next = direct ? ` Después: ${singleText(h.single)}` : ' Tacha esos candidatos en tus notas (✏️) y pide otra pista si te vuelves a atascar.';
     setMsg(`💡 No hay números seguros: toca usar <b>${m.shortName}</b>.${esta} ${st.summary}${next} <span class="small">(Patrón en azul, casillas afectadas en rojo.)</span>${warn}`, 'info');
   } else setMsg(`💡 No encontré un paso lógico desde aquí.${warn || ' Prueba “Rellenar notas”.'}`, 'warn');
   saveProgress(); render();
+}
+
+// Autocompletar: solo al final, cuando todo lo que falta sale con números “obvios” (únicos en su casilla o en su fila/columna/región).
+const AUTO_MAX = 30;
+function retoAutoCount() {
+  const r = S.reto; if (retoLocked()) return 0;
+  const g = r.grid.slice(), empty = g.filter(v => !v).length;
+  if (!empty || empty > AUTO_MAX) return 0;
+  for (let k = 0; k < empty; k++) {
+    const s = rawSingle(g, initCandidates(g));
+    if (!s || Number(r.solution[s.cell]) !== s.digit) return 0;
+    g[s.cell] = s.digit;
+  }
+  return g.every(v => v) ? empty : 0;
+}
+function retoAuto() {
+  const r = S.reto, n = retoAutoCount(); if (!n) return;
+  retoSnapshot();
+  for (let i = 0; i < 81; i++) if (!r.grid[i]) r.grid[i] = Number(r.solution[i]);
+  r.notes = new Array(81).fill(0); r.auto = n;
+  retoFinish();
+  setMsg(`✨ Autocompletado: se pusieron las ${n} casillas obvias que faltaban.`, 'success');
+  saveProgress(); render();
+}
+
+// ------------------------------------------------------------------ modo libre: sudokus completos y difíciles con lo que ya aprendiste
+// Para cada tablero de RETO_LIBRARY: técnicas (posición en TECHNIQUE_ORDER) que usa el solucionador para resolverlo.
+const RETO_INFO = {"locked_candidates":[[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0]],"naked_pairs":[[0,1],[1],[0,1],[0,1],[0,1],[0,1],[0,1],[0,1],[0,1],[0,1],[0,1],[0,1]],"hidden_pairs":[[0,2],[0,2],[0,2],[0,1,2],[0,2],[0,2],[0,2],[0,2],[0,2],[0,2],[0,1,2],[0,2]],"naked_triples":[[0,3],[0,1,2,3],[0,1,3],[0,3],[0,1,2,3],[0,3],[0,2,3],[0,2,3],[0,1,2,3],[0,1,3],[0,3],[0,1,2,3]],"hidden_triples":[[0,1,2,4],[0,2,4],[0,2,4],[0,4],[0,2,4],[0,2,4],[0,1,2,4],[0,2,3,4],[0,2,4],[0,2,4],[0,4],[0,2,4]],"x_wing":[[0,1,5],[0,1,5],[0,5],[0,5],[0,5],[0,1,5],[0,5],[0,1,5],[0,1,5],[0,5],[0,5],[0,5]],"swordfish":[[0,3,6],[0,6],[0,6],[0,5,6],[0,1,6],[0,1,2,6],[0,6],[0,1,6],[0,6],[0,6],[0,5,6],[0,1,6]],"jellyfish":[[0,2,7],[0,1,7],[0,1,7],[0,1,7],[0,7],[0,1,7],[0,7],[1,7],[0,1,7],[0,1,7],[0,1,7],[0,7]],"xy_wing":[[0,1,2,8],[0,8],[1,3,8],[0,2,8],[0,8],[0,8],[0,1,8],[0,8],[0,8],[1,3,8],[0,2,8],[0,8]],"xyz_wing":[[0,1,9],[0,5,9],[0,1,2,5,6,9],[0,9],[0,1,2,9],[0,3,9],[0,2,3,9],[0,8,9],[0,5,9],[0,1,2,5,6,9],[0,9],[0,1,2,9]],"w_wing":[[10],[0,1,2,6,8,10],[10],[10],[0,2,10],[0,1,9,10],[0,10],[0,1,10],[0,1,2,6,8,10],[10],[10],[0,2,10]],"simple_coloring":[[0,1,5,11],[1,11],[0,1,10,11],[0,1,8,11],[0,1,9,11],[0,2,10,11],[0,1,5,9,10,11],[0,1,9,10,11],[1,11],[0,1,10,11],[0,1,8,11],[0,1,9,11]],"multi_coloring":[[0,1,12],[0,1,12],[0,5,8,10,12],[0,8,9,10,11,12],[0,5,8,9,10,11,12],[0,12],[0,1,10,12],[0,1,2,8,10,12],[0,1,12],[0,5,8,10,12],[0,8,9,10,11,12],[0,5,8,9,10,11,12]],"skyscraper":[[0,1,5,8,12,13],[0,10,12,13],[0,2,13],[0,2,3,8,9,10,11,13],[0,1,2,13],[0,1,5,12,13],[0,1,3,6,8,13],[13],[0,10,12,13],[0,2,13],[0,2,3,8,9,10,11,13],[0,1,2,13]],"two_string_kite":[[0,1,2,3,10,11,12,13,14],[0,1,14],[0,1,2,8,14],[0,2,5,8,10,14],[0,1,2,14],[0,1,2,5,9,10,12,14],[9,10,14],[0,1,8,14],[0,1,14],[0,1,2,8,14],[0,2,5,8,10,14],[0,1,2,14]],"empty_rectangle":[[0,1,2,4,8,15],[0,8,15],[0,1,2,5,6,8,11,15],[0,5,8,11,14,15],[0,1,10,12,14,15],[0,1,13,15],[0,15],[0,10,13,15],[0,8,15],[0,1,2,5,6,8,11,15],[0,5,8,11,14,15],[0,1,10,12,14,15]],"unique_rectangle":[[0,1,2,5,8,16],[0,1,2,5,10,16],[9,13,16],[0,1,16],[0,1,11,12,16],[0,11,16],[0,1,2,5,9,10,13,14,16],[1,9,10,16],[0,1,2,5,10,16],[9,13,16],[0,1,16],[0,1,11,12,16]],"als_xz":[[0,1,5,8,12,17],[0,10,11,12,17],[0,1,2,14,17],[0,1,2,5,8,9,11,17],[0,9,10,17],[0,1,2,5,6,8,10,11,15,17],[0,3,8,16,17],[0,1,5,8,10,15,16,17],[0,10,12,17],[0,1,2,14,17],[0,1,2,5,8,9,11,17],[0,9,10,17]],"aic":[[0,1,2,5,10,14,16,18],[0,12,18],[0,16,18],[0,3,5,9,10,11,12,14,18],[0,1,10,18],[0,1,2,6,9,10,16,18],[0,1,2,4,12,14,17,18],[0,1,5,10,11,12,18],[0,1,12,17,18],[0,16,18],[0,3,5,9,10,11,12,14,18],[0,1,10,18]],"forcing_chains":[[0,1,5,11,14,18,19],[0,17,18,19],[0,1,10,12,17,19],[0,1,6,17,18,19],[1,2,3,18,19],[0,2,3,5,8,10,14,17,18,19],[0,14,16,18,19],[0,1,12,14,15,17,18,19],[0,1,3,8,14,17,18,19],[0,1,10,12,17,19],[0,1,6,17,18,19],[1,2,3,18,19]],"sue_de_coq":[[0,1,2,16,17,20],[0,5,8,9,10,12,20],[0,1,17,20],[0,8,12,14,15,17,20],[0,20],[0,1,8,9,12,20],[0,8,10,20],[0,1,8,10,17,20],[0,5,8,9,10,12,20],[0,1,17,20],[0,8,12,14,15,17,20],[0,20]],"death_blossom":[[0,21],[0,1,2,8,10,21],[0,1,2,5,21],[21],[0,1,8,17,21],[0,1,14,17,21],[0,8,9,21],[1,16,21],[0,1,2,8,10,21],[0,1,2,5,21],[21],[0,1,8,17,21]],"advanced_chains":[[0,3,8,12,14,17,22],[0,12,14,17,22],[1,2,5,10,11,12,22],[0,1,2,22],[0,9,11,12,22],[0,9,14,15,22],[0,5,8,10,22],[0,1,2,5,6,8,10,17,22],[0,22],[0,1,8,14,22],[0,5,10,11,17,22],[0,10,17,22]]};
+function learnedRanks() {
+  const L = new Set();
+  TECHNIQUE_ORDER.forEach((t, k) => { const p = prog(t.id); if (p.status === 'practice' || p.status === 'mastered' || (p.retosSolved || 0) > 0) L.add(k); });
+  return L;
+}
+function pickFree() {
+  const L = learnedRanks(), seen = new Set(S.progress.freeSeen || []);
+  let pool = [];
+  for (const id of Object.keys(RETO_INFO)) RETO_INFO[id].forEach((u, i) => {
+    if (u.every(k => L.has(k))) pool.push({ id, i, u, score: Math.max(...u) * 100 + u.length * 10 });
+  });
+  if (!pool.length) RETO_INFO.locked_candidates.forEach((u, i) => pool.push({ id: 'locked_candidates', i, u, score: 0 }));
+  pool.sort((a, b) => b.score - a.score);
+  // Los más difíciles que puedes resolver: el 30 % de arriba (mínimo 6), sin repetir los últimos jugados.
+  let top = pool.slice(0, Math.max(6, Math.ceil(pool.length * 0.3)));
+  const fresh = top.filter(x => !seen.has(x.id + ':' + x.i));
+  if (fresh.length) top = fresh;
+  return { pick: top[Math.floor(Math.random() * top.length)], learned: L.size };
+}
+// Cambia el aspecto del tablero sin cambiar su lógica (números, filas y columnas dentro de su banda, bandas y giro).
+function disguise(g, s) {
+  const dig = [0, ...shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9])];
+  const perm3 = () => { const bands = shuffle([0, 1, 2]), out = []; for (const b of bands) for (const x of shuffle([0, 1, 2])) out.push(b * 3 + x); return out; };
+  const rows = perm3(), cols = perm3(), tr = Math.random() < 0.5;
+  const map = str => { const a = str.split('').map(Number), o = []; for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) { const rr = rows[r], cc = cols[c]; o.push(dig[tr ? a[cc * 9 + rr] : a[rr * 9 + cc]]); } return o.join(''); };
+  return { g: map(g), s: map(s) };
+}
+function newFree() {
+  const old = S.retos.__free, { pick, learned } = pickFree();
+  const b = RETO_LIBRARY[pick.id][pick.i], d = disguise(b.g, b.s);
+  S.progress.freeSeen = [pick.id + ':' + pick.i, ...(S.progress.freeSeen || [])].slice(0, 40);
+  const ranks = [...new Set([...learnedRanks(), ...pick.u])].sort((a, b) => a - b);
+  S.retos.__free = {
+    free: true, tech: pick.id, ranks, used: pick.u, learned, givens: d.g, solution: d.s,
+    grid: d.g.split('').map(Number), notes: new Array(81).fill(0), errors: 0, hints: 0, done: false, lost: false,
+    pencil: old ? !!old.pencil : false, quick: old ? !!old.quick : false, active: 0, sec: 0, auto: 0, n: (old && old.n || 0) + 1
+  };
+  S.retoUndo = []; S.retoHint = null; S.retoFlash = -1;
+}
+function openFree(fresh = false) {
+  stopPlay(); closeMenu();
+  if (fresh || !S.retos.__free) newFree();
+  const r = S.retos.__free;
+  Object.assign(S, { techId: r.tech, stage: 'R', free: true, ref: 'reto', step: null, flow: null, ped: null, selected: -1, picked: [], msg: null, singleShown: null });
+  S.reto = r; S.retoUndo = S.retoUndo || []; S.retoHint = null; S.retoFlash = -1;
+  if (r.quick && r.active) hlSet(r.active);
+  saveProgress(); render();
+  $('panelCol').scrollTop = 0;
 }
 
 function renderRetoBoard() {
@@ -3370,7 +3535,7 @@ function renderRetoBoard() {
     if (c === 8) cls.push('c8'); if (rr === 8) cls.push('r8');
     if (b % 2 === 1) cls.push('alt');
     if (i === sel) cls.push('sel'); else if (peers.has(i)) cls.push('peer');
-    if (S.filter && r.grid[i] === S.filter) cls.push('same');
+    cls.push(...hlCellCls(r.grid[i], r.grid[i] ? 0 : r.notes[i]));
     if (i === hint.single) cls.push('role-single');
     else if (pat.has(i)) cls.push('role-pattern');
     else if (tg.has(i)) cls.push('role-target');
@@ -3379,7 +3544,7 @@ function renderRetoBoard() {
     if (r.grid[i]) el.innerHTML = `<span class="v mono ${r.givens[i] !== '0' ? 'given' : 'placed'}">${r.grid[i]}</span>`;
     else if (r.notes[i]) {
       let h = '<div class="cands mono">';
-      for (let d = 1; d <= 9; d++) h += `<div class="cd ${S.filter === d && (r.notes[i] & (1 << d)) ? 'f' : ''}">${r.notes[i] & (1 << d) ? d : ''}</div>`;
+      for (let d = 1; d <= 9; d++) h += `<div class="cd ${r.notes[i] & (1 << d) ? hlCd(d) : ''}">${r.notes[i] & (1 << d) ? d : ''}</div>`;
       el.innerHTML = h + '</div>';
     }
     el.addEventListener('click', () => onCell(i));
@@ -3388,7 +3553,9 @@ function renderRetoBoard() {
   const g = $('grid'); g.innerHTML = ''; g.appendChild(frag);
   $('overlay').innerHTML = '';
   const lives = [0, 1, 2].map(k => k < 3 - r.errors ? '❤️' : '🤍').join('');
-  $('legend').innerHTML = `<span><b>${lives}</b>&nbsp;Errores ${r.errors}/3</span><span>💡 Pistas ${r.hints}</span>` +
+  const hc = ['var(--h0)', 'var(--h1)', 'var(--h2)'];
+  $('legend').innerHTML = `<span>⏱&nbsp;<b class="clock" id="retoClock">${fmtTime(r.sec)}</b></span><span><b>${lives}</b>&nbsp;Errores ${r.errors}/3</span><span>💡 Pistas ${r.hints}</span>` +
+    (S.hl.length ? `<span>🔦 ${S.hl.map((d, k) => `<b style="color:${hc[k]}">${d}</b>`).join(' ')}</span>` : '') +
     (r.pencil ? '<span>✏️ Notas</span>' : '') + (r.quick ? `<span>⚡ Rápido${r.active ? ': ' + r.active : ''}</span>` : '');
 }
 
@@ -3400,39 +3567,55 @@ function panelReto(meta) {
   const jelly = S.techId === 'jellyfish' ? ' Ojo: un Jellyfish siempre tiene un “gemelo” más pequeño (X-Wing o Swordfish) en la otra dirección; si lo ves así, también vale.' : '';
   let state = '';
   if (r.done) {
-    state = `<div class="box green"><b class="t">🎉 ¡Sudoku resuelto completo!</b><div class="p">Lo terminaste con ${r.errors} error(es) y ${r.hints} pista(s). Llevas <b>${solved}</b> sudoku(s) completos de ${meta.shortName}.</div></div>
-      <div class="row"><button class="btn pri grow" data-act="retoNew">🔀 Otro sudoku</button>${solved >= RETO_GOAL ? '<button class="btn ok grow" data-act="nextTech">Siguiente técnica →</button>' : ''}</div>`;
+    const prev = S.progress.history.slice(1).filter(h => r.free ? h.free : !h.free && h.tech === S.techId);
+    const best = prev.length ? Math.min(...prev.map(h => h.sec)) : null;
+    const rec = best === null ? 'Es tu primer tiempo guardado aquí.' : r.sec < best ? `🏅 ¡Nuevo récord! Antes tu mejor tiempo era ${fmtTime(best)}.` : `Tu mejor tiempo ${r.free ? 'en modo libre' : 'en ' + meta.shortName} es ${fmtTime(best)}.`;
+    state = `<div class="box green"><b class="t">🎉 ¡Sudoku resuelto completo!</b><div class="p">⏱ Tiempo <b>${fmtTime(r.sec)}</b> · ❌ ${r.errors} error(es) · 💡 ${r.hints} pista(s)${r.auto ? ` · ✨ ${r.auto} autocompletadas` : ''}.<br>${rec}${r.free ? '' : ` Llevas <b>${solved}</b> sudoku(s) completos de ${meta.shortName}.`}</div></div>
+      ${r.free ? `<div class="box"><b class="t">Técnicas que necesitaba</b><div class="p">${r.used.map(k => TECHNIQUE_META[TECHNIQUE_ORDER[k].id].shortName).join(' · ')}</div></div>` : ''}
+      <div class="row"><button class="btn pri grow" data-act="retoNew">🔀 Otro sudoku</button>${!r.free && solved >= RETO_GOAL ? '<button class="btn ok grow" data-act="nextTech">Siguiente técnica →</button>' : ''}</div>`;
   } else if (r.lost) {
     state = `<div class="box red"><b class="t">Se acabaron las vidas</b><div class="p">Cometiste 3 errores. Puedes repetir este mismo tablero desde cero o probar otro.</div></div>
       <div class="row"><button class="btn sec grow" data-act="retoRetry">↻ Repetir este</button><button class="btn pri grow" data-act="retoNew">🔀 Otro sudoku</button></div>`;
   } else {
     state = `<div class="links"><button class="btn ghost sm" data-act="retoHint">💡 Pista</button><button class="btn ghost sm" data-act="retoFill">📝 Rellenar notas</button><button class="btn ghost sm" data-act="retoRetry">↻ Empezar de nuevo</button><button class="btn ghost sm" data-act="retoNew">🔀 Otro sudoku</button></div>`;
   }
+  const help = `<details class="box"><summary>Cómo se juega</summary><div class="in">
+      • <b>Normal:</b> toca una casilla vacía y luego el número de abajo.<br>
+      • <b>Resaltar:</b> los mismos números de abajo resaltan. Sin casilla vacía elegida, tocar un número lo resalta (otra vez lo quita). Puedes resaltar <b>hasta 3 números a la vez</b>, cada uno con su color: así ves fácil pares y tríos.<br>
+      • <b>Mantén presionado</b> un número para sumarlo o quitarlo del resaltado sin colocarlo (sirve también en modo Rápido). <b>🔦✕</b> quita todo el resaltado.<br>
+      • Con 2–3 números resaltados, las casillas que tienen todos esos números en sus notas se ven amarillas, y con borde naranja las que <b>solo</b> tienen números resaltados (par/trío desnudo).<br>
+      • <b>⚡ Rápido:</b> elige un número y toca todas las casillas donde va; se queda elegido hasta que toques otro (o el mismo para soltarlo).<br>
+      • <b>✏️ Notas:</b> con el lápiz encendido, los números se anotan pequeños (tocar otra vez los quita).<br>
+      • <b>⌫ Borrar</b> limpia la casilla elegida y <b>↶</b> deshace.<br>
+      • El tiempo corre mientras juegas y se guarda con tus errores al terminar. Con 3 errores se acaba el tablero.<br>
+      • <b>✨ Autocompletar</b> aparece al final, cuando lo que falta (${AUTO_MAX} casillas o menos) sale con números obvios.</div></details>`;
+  if (r.free) return `
+    <div class="row" style="justify-content:space-between"><div class="kicker" style="color:var(--indigo)">🎲 Modo libre · Sudoku difícil</div><span class="chip">#${r.n || 1}</span></div>
+    ${!r.done && !r.lost ? `<div class="box violet"><b class="t">Con lo que ya aprendiste</b><div class="p">Elegido entre los más difíciles que se resuelven con tus ${r.learned || 0} técnica(s) practicadas o dominadas. No te digo cuál técnica toca: descúbrelo tú. Tienes 3 vidas.</div></div>` : ''}
+    ${state}${help}`;
   return `
     <div class="row" style="justify-content:space-between"><div class="kicker" style="color:var(--indigo)">Paso 5 · Resolver sudokus completos</div><span class="chip ${solved >= RETO_GOAL ? 'g' : ''}">${Math.min(solved, RETO_GOAL)} de ${RETO_GOAL}</span></div>
     ${progressBar(RETO_GOAL, Math.min(solved, RETO_GOAL))}
     ${!r.done && !r.lost ? `<div class="box violet"><b class="t">Resuélvelo de principio a fin</b><div class="p">Este sudoku está elegido para que en algún momento <b>necesites ${meta.shortName}</b>: con las técnicas anteriores${later} te quedarías atascado.${jelly} Tienes 3 vidas. Sudoku ${(r.base || 0) + 1} de ${(RETO_LIBRARY[S.techId] || []).length}.</div></div>` : ''}
     ${state}
-    <details class="box"><summary>Cómo se juega</summary><div class="in">
-      • <b>Normal:</b> toca una casilla y luego el número de abajo.<br>
-      • <b>⚡ Rápido:</b> elige un número abajo y toca todas las casillas donde va; se queda elegido hasta que toques otro (o el mismo para soltarlo).<br>
-      • <b>✏️ Notas:</b> con el lápiz encendido, los números se anotan pequeños (tocar otra vez los quita). Funciona también en modo Rápido.<br>
-      • <b>⌫ Borrar</b> limpia la casilla elegida y <b>↶</b> deshace.<br>
-      • Si pones un número que no va, cuenta como error. Con 3 errores se acaba el tablero.<br>
-      • La barra <b>Resaltar</b> ilumina un número en todo el tablero, también en tus notas.</div></details>`;
+    ${help}`;
 }
 function dockReto() {
   const r = S.reto; if (!r || r.done || r.lost) return '';
   const lock = false;
   const count = d => r.grid.filter(v => v === d).length;
-  const tools = `<div class="tools">
+  const auto = retoAutoCount();
+  const autoBtn = auto ? `<button class="btn ok" data-act="retoAuto">✨ Autocompletar (${auto} casillas obvias)</button>` : '';
+  const tools = autoBtn + `<div class="tools t5">
     <button data-act="retoPencil" class="${r.pencil ? 'on' : ''}" ${lock ? 'disabled' : ''} aria-pressed="${r.pencil}">✏️ Notas</button>
     <button data-act="retoQuick" class="${r.quick ? 'on' : ''}" ${lock ? 'disabled' : ''} aria-pressed="${r.quick}">⚡ Rápido</button>
     <button data-act="retoErase" ${lock ? 'disabled' : ''}>⌫ Borrar</button>
-    <button data-act="retoUndo" ${lock || !S.retoUndo.length ? 'disabled' : ''} aria-label="Deshacer">↶</button></div>`;
+    <button data-act="retoUndo" ${lock || !S.retoUndo.length ? 'disabled' : ''} aria-label="Deshacer">↶</button>
+    <button data-act="hlClear" ${S.hl.length ? '' : 'disabled'} aria-label="Quitar resaltado">🔦✕</button></div>`;
   const pad = `<div class="pad ${r.pencil ? 'note' : 'place'}">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => {
     const full = count(n) === 9;
-    return `<button class="mono ${r.quick && r.active === n ? 'act' : ''}" data-rdigit="${n}" ${lock || (full && !r.pencil) ? 'disabled' : ''}>${n}</button>`;
+    const k = S.hl.indexOf(n);
+    return `<button class="mono ${r.quick && r.active === n ? 'act' : ''} ${k >= 0 ? 'hl' + k : ''}" data-rdigit="${n}" ${lock || (full && !r.pencil && k < 0) ? 'disabled' : ''} aria-label="${n}">${n}</button>`;
   }).join('')}</div>`;
   return tools + pad;
 }
@@ -3470,12 +3653,19 @@ const ACTIONS = {
   toEval() { loadExercise(S.techId, 'b2', 'D'); },
   toEval2() { loadExercise(S.techId, 'iso', 'E'); },
   toReto() { openReto(S.techId); },
-  retoNew() { openReto(S.techId, true); },
-  retoRetry() { newReto(S.techId, true); openReto(S.techId); setMsg('Mismo tablero, desde cero y con 3 vidas.', 'info'); render(); },
+  retoNew() { if (S.free) openFree(true); else openReto(S.techId, true); },
+  retoRetry() {
+    if (S.free) { const r = S.reto; Object.assign(r, { grid: r.givens.split('').map(Number), notes: new Array(81).fill(0), errors: 0, hints: 0, done: false, lost: false, active: 0, sec: 0, auto: 0 }); S.retoUndo = []; openFree(); }
+    else { newReto(S.techId, true); openReto(S.techId); }
+    setMsg('Mismo tablero, desde cero y con 3 vidas.', 'info'); render();
+  },
+  retoAuto() { retoAuto(); },
+  hlClear() { S.hl = []; saveSession(); render(); },
+  theme(t) { S.theme = t; applyTheme(); saveProgress(); renderMenu(); },
   retoHint() { retoHint(); },
   retoFill() { retoFillNotes(); },
   retoPencil() { S.reto.pencil = !S.reto.pencil; setMsg(S.reto.pencil ? '✏️ Notas encendidas: los números se anotan pequeños.' : 'Notas apagadas: los números se colocan.', 'info'); saveProgress(); render(); },
-  retoQuick() { const r = S.reto; r.quick = !r.quick; r.active = 0; if (!r.quick) S.filter = 0; setMsg(r.quick ? '⚡ Rápido: elige un número abajo y toca todas las casillas donde va.' : 'Modo normal: toca una casilla y luego el número.', 'info'); saveProgress(); render(); },
+  retoQuick() { const r = S.reto; r.quick = !r.quick; r.active = 0; if (!r.quick) S.hl = []; setMsg(r.quick ? '⚡ Rápido: elige un número abajo y toca todas las casillas donde va.' : 'Modo normal: toca una casilla y luego el número.', 'info'); saveProgress(); render(); },
   retoErase() { retoErase(); },
   retoUndo() { retoUndo(); },
   retryEval() { loadExercise(S.techId, S.ref, S.stage); },
@@ -3534,8 +3724,8 @@ const ACTIONS = {
   resetAll() {
     if (!S.confirmReset) { S.confirmReset = true; return renderMenu(); }
     try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem('sudoku_academy_progress_v1'); localStorage.removeItem(RETOS_KEY); } catch (e) {}
-    S.retos = {}; if (S.stage === 'R') newReto(S.techId), S.reto = S.retos[S.techId];
-    S.progress = { techniques: {}, stats: freshStats() }; initDefaultProgress(); saveProgress();
+    S.retos = {}; if (S.stage === 'R') { if (S.free) { newFree(); S.reto = S.retos.__free; } else { newReto(S.techId); S.reto = S.retos[S.techId]; } }
+    S.progress = { techniques: {}, stats: freshStats(), history: [], freeSeen: [] }; initDefaultProgress(); saveProgress();
     S.confirmReset = false; renderMenu(); render();
   }
 };
@@ -3554,7 +3744,7 @@ function onPanelClick(e) {
   if (t.dataset.rdigit) return retoDigit(Number(t.dataset.rdigit));
   if (t.dataset.qDigit) {
     const d = Number(t.dataset.qDigit);
-    S.filter = d;
+    S.hl = [d];
     if (f.keyDigits.includes(d)) {
       recordPractice(true);
       const all = S.step.digits && S.step.digits.length > 1 ? ` El patrón usa {${S.step.digits.join(', ')}}.` : '';
@@ -3596,18 +3786,38 @@ function bind() {
   $('filterBar').addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b || b.disabled) return;
     const d = Number(b.dataset.filter);
-    S.filter = S.filter === d ? 0 : d;
+    if (!d) S.hl = []; else hlToggle(d);
+    saveSession();
     renderBoard(); renderFilterBar();
   });
   $('updBar').addEventListener('click', e => { if (e.target.closest('[data-upd="later"]')) $('updBar').classList.add('hidden'); });
   $('panel').addEventListener('click', onPanelClick);
-  $('dock').addEventListener('click', onPanelClick);
+  $('dock').addEventListener('click', e => {
+    if (S.lpFired && e.target.closest('[data-rdigit]')) { S.lpFired = false; return; }
+    onPanelClick(e);
+  });
+  // Mantener presionado un número de abajo: lo suma/quita del resaltado sin colocarlo.
+  let lpTimer = null;
+  const lpCancel = () => { clearTimeout(lpTimer); lpTimer = null; };
+  $('dock').addEventListener('pointerdown', e => {
+    const b = e.target.closest('[data-rdigit]'); if (!b || b.disabled) return;
+    S.lpFired = false; lpCancel();
+    lpTimer = setTimeout(() => {
+      S.lpFired = true; hlToggle(Number(b.dataset.rdigit));
+      try { navigator.vibrate && navigator.vibrate(25); } catch (er) {}
+      saveSession(); renderBoard(); renderDock();
+      setTimeout(() => { S.lpFired = false; }, 700);
+    }, 450);
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => $('dock').addEventListener(ev, lpCancel));
+  $('dock').addEventListener('contextmenu', e => { if (e.target.closest('[data-rdigit]')) e.preventDefault(); });
   $('menuMap').addEventListener('click', e => {
     const t = e.target.closest('button'); if (!t) return;
     if (t.dataset.open) { closeMenu(); openPending(t.dataset.open); }
+    else if (t.dataset.theme) ACTIONS.theme(t.dataset.theme);
     else if (t.dataset.act) ACTIONS[t.dataset.act]();
   });
-  $('menuStats').addEventListener('click', e => { const t = e.target.closest('button'); if (t && t.dataset.act) ACTIONS[t.dataset.act](); });
+  $('menuStats').addEventListener('click', e => { const t = e.target.closest('button'); if (!t) return; if (t.dataset.theme) ACTIONS.theme(t.dataset.theme); else if (t.dataset.act) ACTIONS[t.dataset.act](); });
   document.querySelectorAll('[data-mtab]').forEach(b => b.addEventListener('click', () => { S.menuTab = b.dataset.mtab; S.confirmReset = false; renderMenu(); }));
   $('menuBtn').addEventListener('click', openMenu);
   $('menuClose').addEventListener('click', closeMenu);
@@ -3636,8 +3846,18 @@ window.addEventListener('load', () => {
   loadProgress();
   loadRetos();
   bind();
+  applyTheme();
+  if (window.matchMedia) try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (S.theme === 'auto') applyTheme(); }); } catch (e) {}
   restoreSession();
-  setInterval(() => { S.exSec++; }, 1000);
+  setInterval(() => {
+    S.exSec++;
+    // Cronómetro del sudoku: solo corre con la app a la vista, el menú cerrado y el tablero sin terminar.
+    if (S.stage === 'R' && S.reto && !retoLocked() && document.visibilityState === 'visible' && $('menu').classList.contains('hidden')) {
+      S.reto.sec = (S.reto.sec || 0) + 1;
+      const el = $('retoClock'); if (el) el.textContent = fmtTime(S.reto.sec);
+      if (S.reto.sec % 5 === 0) saveSession();
+    }
+  }, 1000);
   setTimeout(() => buscarActualizacion(false), 1500);
   window.addEventListener('pagehide', saveProgress);
   document.addEventListener('visibilitychange', () => {
