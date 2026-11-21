@@ -2771,24 +2771,38 @@ function finishEliminations(auto = false) {
     if (!S.singles.length) advance();
     setMsg(auto ? 'Hecho. Mira en verde tachado lo que se eliminó.' : '¡Todas las eliminaciones correctas!', 'success');
   } else {
-    const pass = !S.usedAuto && S.hint <= 1 && S.flow.techFirstTry;
+    // Equivocarse al elegir la técnica ya no tumba la evaluación: si la corriges y terminas, cuenta.
+    const pass = !S.usedAuto && S.hint <= 1;
     const reasons = [];
     if (S.usedAuto) reasons.push('usaste “Ver solución”');
     if (S.hint > 1) reasons.push(`usaste ${S.hint} pistas (máximo 1)`);
-    if (!S.flow.techFirstTry) reasons.push('no reconociste la técnica al primer intento');
     S.flow.result = { pass, reasons };
-    if (pass && !S.free && p) {
-      const key = `${S.techId}_b${S.stage === 'E' ? 3 : 2}`;
-      if (!p.evalBoardsSolved.includes(key)) p.evalBoardsSolved.push(key);
-      p.practiceDone = true; p.attempts++; p.bestAutonomy = Math.max(p.bestAutonomy, autonomy);
-      recompute();
-    }
     advance();
     S.msg = null;
+    if (pass && !S.free && p) { creditEval(p, autonomy); return; }
   }
   saveProgress();
   render();
   $('panelCol').scrollTop = 0;
+}
+
+// Evaluación aprobada: se guarda y se pasa solo al siguiente paso (Evaluación 2 → Resolver).
+function creditEval(p, autonomy = 100) {
+  const id = S.techId, stage = S.stage;
+  const key = `${id}_b${stage === 'E' ? 3 : 2}`;
+  if (!p.evalBoardsSolved.includes(key)) p.evalBoardsSolved.push(key);
+  p.practiceDone = true; p.attempts++; p.bestAutonomy = Math.max(p.bestAutonomy, autonomy);
+  recompute(id); saveProgress();
+  if (p.evalBoardsSolved.length < 2) {
+    loadExercise(id, 'iso', 'E');
+    setMsg('✅ ¡Evaluación 1 aprobada! Sigue la 2 de 2 (otro tablero, misma técnica).', 'success');
+  } else if (p.status !== 'mastered') {
+    openReto(id);
+    setMsg(`✅ ¡Evaluaciones aprobadas! Último paso: resuelve ${RETO_GOAL} sudokus completos.`, 'success');
+  } else {
+    setMsg('✅ ¡Evaluación aprobada!', 'success');
+  }
+  render(); $('panelCol').scrollTop = 0;
 }
 
 function placeSingle(cell, d) {
@@ -3112,7 +3126,7 @@ function panelEval(meta) {
       : `<div class="box amber"><b class="t">Lo resolviste, pero no cuenta para el dominio</b><div class="p">Motivo: ${r.reasons.join('; ')}.</div></div>`) + next;
   }
   const hintBtn = st !== 'done' ? `<div class="box amber"><div class="row" style="justify-content:space-between"><b>💡 Pistas usadas: ${S.hint}/4</b><button class="btn sec sm" data-act="hint" ${S.hint >= 4 ? 'disabled' : ''}>Dame una pista</button></div>
-      ${S.hint ? `<div class="p" style="margin-top:6px">${S.ped.hints[S.hint - 1]}</div>` : `<div class="small">Para que cuente como dominio: máximo 1 pista y acertar la técnica al primer intento.</div>`}</div>` : '';
+      ${S.hint ? `<div class="p" style="margin-top:6px">${S.ped.hints[S.hint - 1]}</div>` : `<div class="small">Para que cuente: máximo 1 pista y sin “Ver solución”. Al terminar pasas solo al siguiente paso.</div>`}</div>` : '';
   return `
     <div class="row" style="justify-content:space-between"><div class="kicker" style="color:var(--amber)">${title}</div><span class="chip">${st === 'done' ? 'Terminado' : `Paso ${f.i + 1} de ${n}`}</span></div>
     ${progressBar(n, f.i)}
@@ -3277,6 +3291,8 @@ function restoreSession() {
             flow: s.flow || S.flow, singles: s.singles || [], singleShown: s.singleShown || null, hl: Array.isArray(s.hl) ? s.hl.slice(0, 3) : s.filter ? [s.filter] : [], exSec: s.exSec || 0
           });
           if (S.stage === 'B') return setObs(S.obsIdx);
+          const fr = S.flow && S.flow.kind === 'eval' && S.flow.result;
+          if (fr && !fr.pass && !S.free && !S.usedAuto && S.hint <= 1 && curStep() === 'done') { fr.pass = true; fr.reasons = []; return creditEval(prog()); }
           render(); return;
         }
       }
