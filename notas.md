@@ -1,8 +1,6 @@
-## Sudoku Academy 1.2.0
+## Sudoku Academy 1.3.0
 
-- ⏱ Cada sudoku completo guarda tu tiempo, errores y pistas. Al terminar ves si hiciste récord, y en “Mi progreso” está la lista de tus sudokus resueltos.
-- ✨ Autocompletar: al final, cuando lo que falta son solo números obvios, aparece un botón para llenarlos de una vez.
-- Una sola fila de números en “Resolver”: los mismos números que pones también resaltan. Sin casilla vacía elegida, tocar un número lo resalta.
-- 🔦 Resalta hasta 3 números a la vez, cada uno con su color, para encontrar pares y tríos. Mantén presionado un número para sumarlo al resaltado; 🔦✕ lo quita.
-- 🌙 Tema claro, oscuro o automático (en el menú).
-- 🎲 Modo libre nuevo: sudokus completos y difíciles que se resuelven con las técnicas que ya practicaste o dominaste. Mientras más aprendas, más difíciles.
+- 🏷 Nombres más fáciles de recordar para las 23 técnicas (por ejemplo “Pareja escondida”, “Rectángulo de un número”, “Pivote con dos pinzas”). El nombre técnico sigue apareciendo debajo, más pequeño.
+- 🔦 Nuevo interruptor para resaltar: con **🔦×1** se resalta un solo número a la vez (tocar otro reemplaza al anterior); con **🔦×3** puedes resaltar hasta 3 a la vez, como antes. En las lecciones, el interruptor es el botón “Resaltar uno / varios” al lado de los números.
+- ✅ Una técnica ya no queda “Dominada” hasta que resuelvas sus 3 sudokus completos. Se quitó el botón para saltarlos. Si alguna técnica tuya quedó dominada sin esos sudokus, ahora dice “Faltan sudokus 0/3” y al abrirla te lleva directo a resolverlos.
+- 🔬 Se revisaron los 276 sudokus completos: todos tienen una sola solución y todos necesitan la técnica de su lección (sin ella te atascas, con ella se resuelven hasta el final).
