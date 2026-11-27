@@ -5,8 +5,6 @@ name: Probar actualización en emulador
 
 on:
   workflow_dispatch:
-  push:
-    branches: [instalar-en-app]
 
 jobs:
   probar:

@@ -1,6 +1,5 @@
-## Sudoku Academy 1.5.0
+## Sudoku Academy 1.6.0
 
-- 📅 **Retos de hoy:** cada día salen 3 sudokus nuevos (🟢 Calentamiento, 🟡 Medio y 🔴 Difícil) que se resuelven solo con las técnicas que ya practicaste. Ábrelos con el botón 📅 de arriba o desde el menú ☰.
-- 🔥 Racha de días seguidos y los últimos 7 días marcados, para no perder el hábito.
-- 🎯 **Paso 1 más práctico:** ahora se llama “Idea”. Lees la idea en simple y de una vez la pruebas: tocas la casilla donde el patrón deja tachar. La teoría larga quedó guardada en “Teoría completa (opcional)”.
-- ✋ En el ejemplo puedes saltar directo a practicar cuando ya lo entendiste.
+- ⬇️ **Actualiza sin salir de la app:** cuando haya versión nueva, toca “Actualizar ahora”. Se descarga ahí mismo con una barra de progreso y Android solo te pide tocar “Actualizar”. Tu progreso se conserva.
+- La primera vez Android puede pedirte “Permitir de esta fuente” para Sudoku Academy: actívalo, vuelve atrás y la descarga sigue sola.
+- Esta actualización (a la 1.6.0) todavía se instala por el navegador como antes; desde aquí en adelante, todas se instalan dentro de la app.
