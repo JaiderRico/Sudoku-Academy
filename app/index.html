@@ -213,6 +213,16 @@ details.box .in{padding:0 13px 12px;font-size:14.5px;color:var(--ink2)}
 .stat .val{font-size:22px;font-weight:800}
 .free-card{background:linear-gradient(135deg,#4f46e5,#0284c7);color:#fff;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px}
 .free-card .btn{background:#fff;color:var(--indigo)}
+.daily-card{background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:9px;margin-bottom:14px}
+.daily-card .dslots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.daily-card .dslots button{background:#fff;color:#9a3412;border-radius:12px;padding:9px 4px;font-weight:800;font-size:13px;line-height:1.25;display:flex;flex-direction:column;align-items:center;gap:3px}
+.daily-card .dslots button.ok{background:#dcfce7;color:#166534}
+.daily-card .dslots button.lost{background:#fee2e2;color:#991b1b}
+.daily-card .dslots small{font-weight:700;font-size:11.5px;opacity:.85}
+.daily-card .week{display:flex;gap:4px}
+.daily-card .week span{flex:1;text-align:center;font-size:10.5px;font-weight:700;border-radius:8px;padding:3px 0;background:rgba(255,255,255,.2);line-height:1.3}
+.daily-card .week span.on{background:#fff;color:#c2410c}
+.daily-card .week span.today{outline:2px solid #fff}
 
 /* Wide screens: board left, explanation right */
 @media (min-width:880px){
@@ -284,12 +294,13 @@ body.dark .steps-dots button.seen{background:#312e81;color:#c7d2fe}
       <div class="sub" id="techSub">Nivel 1 · Técnica 1 de 23</div>
       <div class="main" id="techTitle">Sudoku Academy</div>
     </div>
+    <button id="dailyBtn" class="icon-btn" aria-label="Retos de hoy" title="Retos de hoy">📅</button>
     <button id="boardSizeBtn" class="icon-btn" aria-label="Cambiar tamaño del tablero" title="Tamaño del tablero">⤢</button>
   </header>
 
   <div id="updBar" class="upd hidden" role="status"></div>
   <nav class="stages" id="stageTabs" aria-label="Etapas de la lección">
-    <button data-tab="A"><span class="n">1</span>Entender</button>
+    <button data-tab="A"><span class="n">1</span>Idea</button>
     <button data-tab="B"><span class="n">2</span>Ejemplo</button>
     <button data-tab="C"><span class="n">3</span>Practicar</button>
     <button data-tab="D"><span class="n">4</span>Evaluar</button>
@@ -2435,7 +2446,7 @@ const APK_URL = `https://github.com/${REPO}/releases/latest/download/SudokuAcade
 const LAST_KEY = 'sudoku_academy_last_v3';
 const $ = id => document.getElementById(id);
 const rankOf = id => TECHNIQUE_ORDER.findIndex(t => t.id === id);
-const shuffle = arr => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const shuffle = (arr, rnd = Math.random) => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const unitName = r => r.type === 'row' ? `Fila ${r.index + 1}` : r.type === 'col' ? `Columna ${r.index + 1}` : `Región ${r.index + 1}`;
 const unitCells = r => r.type === 'row' ? ROWS[r.index] : r.type === 'col' ? COLS[r.index] : BOXES[r.index];
 
@@ -2450,7 +2461,8 @@ const S = {
   dynamic: {}, variantSerial: {}, freeQueue: [],
   exSec: 0, boardSize: 'M', menuTab: 'map',
   retos: {}, reto: null, retoUndo: [], retoHint: null, retoFlash: -1,
-  progress: { techniques: {}, stats: freshStats(), history: [], freeSeen: [] }
+  progress: { techniques: {}, stats: freshStats(), history: [], freeSeen: [], daily: {}, dailyBest: 0 },
+  aTry: { done: false, wrong: 0 }
 };
 function freshStats() {
   return { identifiedCount: 0, correctEliminations: 0, errorsCount: 0, hintsUsed: 0, totalTimeSeconds: 0, completedExercises: 0, score: 0, autonomySum: 0, autonomySamples: 0 };
@@ -2474,6 +2486,8 @@ function loadProgress() {
       if (parsed && parsed.stats) Object.assign(S.progress.stats, parsed.stats);
       if (parsed && Array.isArray(parsed.history)) S.progress.history = parsed.history;
       if (parsed && Array.isArray(parsed.freeSeen)) S.progress.freeSeen = parsed.freeSeen;
+      if (parsed && parsed.daily && typeof parsed.daily === 'object') S.progress.daily = parsed.daily;
+      if (parsed && parsed.dailyBest) S.progress.dailyBest = parsed.dailyBest;
     }
   } catch (e) {}
   initDefaultProgress();
@@ -2555,7 +2569,7 @@ function loadExercise(techId, ref, stage, free = false, exOverride = null) {
     solution: ex.solution.split('').map(Number), cands: Array.from(ex.cands),
     eliminated: [], picked: [], selected: -1, obsIdx: 0,
     hint: 0, showTargets: false, usedAuto: false, undo: [], msg: null,
-    singles: [], singleShown: null, exSec: 0
+    singles: [], singleShown: null, exSec: 0, aTry: { done: false, wrong: 0 }
   });
   S.ped = buildPedagogyForStep(S.step, TECHNIQUE_META[techId]);
   S.flow = stage === 'C' ? buildPractice() : (stage === 'D' || stage === 'E') ? buildEval() : null;
@@ -2710,6 +2724,7 @@ function undo() {
 
 function onCell(idx) {
   if (S.stage === 'R') return retoCell(idx);
+  if (S.stage === 'A') return tryCell(idx);
   const st = curStep();
   if (st === 'cells') {
     const k = S.picked.indexOf(idx);
@@ -2834,7 +2849,7 @@ function placeSingle(cell, d) {
 function getVis() {
   const none = { regions: false, cells: false, cands: false, links: false, targets: false, applied: false };
   if (!S.step) return none;
-  if (S.stage === 'A') return { regions: true, cells: true, cands: true, links: true, targets: true, applied: false };
+  if (S.stage === 'A') return { regions: true, cells: true, cands: true, links: true, targets: !!(S.aTry && S.aTry.done), applied: false };
   if (S.stage === 'B') {
     const e = S.ped.eightSteps[S.obsIdx];
     return { regions: e.showRegions, cells: e.showCells, cands: e.showCands, links: e.showLinks, targets: S.obsIdx === 5, applied: S.obsIdx >= 6 };
@@ -2969,8 +2984,9 @@ function renderOverlay(vis) {
 function renderHeader() {
   const meta = TECHNIQUE_META[S.techId];
   const hidden = S.free || ((S.stage === 'D' || S.stage === 'E') && !passed('tech'));
-  $('techSub').textContent = S.free ? (S.stage === 'R' ? 'Modo libre · con tus técnicas' : 'Modo libre · ¿qué técnica es?') : `Técnica ${meta.order} de 23 · Nombre técnico: ${meta.tech}`;
-  $('techTitle').textContent = S.free && S.stage === 'R' ? 'Sudoku difícil' : hidden && !(S.free && passed('tech')) ? (S.free ? 'Tablero sorpresa' : 'Evaluación · técnica oculta') : meta.shortName;
+  const daily = S.stage === 'R' && S.reto && S.reto.daily;
+  $('techSub').textContent = daily ? '📅 Reto de hoy · con tus técnicas' : S.free ? (S.stage === 'R' ? 'Modo libre · con tus técnicas' : 'Modo libre · ¿qué técnica es?') : `Técnica ${meta.order} de 23 · Nombre técnico: ${meta.tech}`;
+  $('techTitle').textContent = daily ? `${dailyName(daily)[1]} ${dailyName(daily)[2]}` : S.free && S.stage === 'R' ? 'Sudoku difícil' : hidden && !(S.free && passed('tech')) ? (S.free ? 'Tablero sorpresa' : 'Evaluación · técnica oculta') : meta.shortName;
   const tabs = $('stageTabs');
   tabs.classList.toggle('hidden', S.free);
   const p = prog();
@@ -3002,22 +3018,48 @@ function renderPanel() {
 
 function panelLearn(meta) {
   const simple = SIMPLE_EXPLAIN[S.techId] || meta.problemSolved || meta.concept;
+  const t = S.aTry || {}, focus = S.ped.focusDigits;
+  const task = t.done
+    ? `<div class="box green"><b class="t">✅ ${t.shown ? 'Así funciona' : '¡Eso es!'}</b><div class="p">${S.step.summary}</div>
+        <div class="small" style="margin-top:6px">En rojo quedaron todas las casillas donde se tacha. Eso es la técnica: ves el patrón y tachas. Ahora hazlo tú solo en “Practicar”.</div></div>`
+    : `<div class="box amber"><b class="t">🎯 Pruébalo ya</b><div class="p">En el tablero ya está marcado el patrón (casillas azules${focus ? `, con el ${focus.replace(/, ([^,]*)$/, ' y $1')} en verde` : ''}). <b>Toca una casilla donde se pueda tachar un número</b> gracias a ese patrón.</div>
+        ${t.wrong ? `<div class="small" style="margin-top:6px">Intentos: ${t.wrong}. Pista: la casilla que buscas “ve” al patrón (comparte fila, columna o región con él).</div>` : ''}
+        ${t.wrong >= 2 ? `<div class="row" style="margin-top:8px"><button class="btn sec sm" data-act="aShow">👀 Muéstrame</button></div>` : ''}</div>`;
   return `
-    <div><div class="kicker">Paso 1 · Entender la idea</div><div class="h2">${meta.name}</div></div>
+    <div><div class="kicker">Paso 1 · La idea en un minuto y pruébala</div><div class="h2">${meta.name}</div></div>
     <div class="box blue"><b class="t">💡 La idea en simple</b><div class="p">${simple}</div></div>
-    <div class="box"><b class="t">👆 Así se ve (tablero de arriba)</b><div class="p">${S.step.summary}</div>
-      <div class="small" style="margin-top:6px">Los colores se explican justo debajo del tablero. Las líneas unen candidatos conectados lógicamente.</div></div>
-    <div class="box amber"><b class="t">🔎 Cómo reconocerla</b><div class="p">${meta.howToRecognize || meta.patternTip}</div></div>
-    <details class="box"><summary>Condiciones exactas</summary><div class="in">${meta.conditions}</div></details>
-    <details class="box"><summary>Qué se elimina y por qué</summary><div class="in">${meta.whatAndWhyEliminate}<br><br>${meta.whyItWorks}</div></details>
-    <details class="box"><summary>Cuándo NO se puede usar</summary><div class="in">${meta.whenNotToApply}</div></details>
-    <details class="box"><summary>Cuándo buscarla</summary><div class="in">${meta.whenToUse}</div></details>
-    <details class="box"><summary>Conviene saber antes</summary><div class="in">${meta.prereqConcepts}</div></details>
+    ${task}
+    <div class="box"><b class="t">🔎 Cómo buscarla en un sudoku</b><div class="p">${meta.patternTip}</div></div>
+    <details class="box"><summary>📚 Teoría completa (opcional)</summary><div class="in">
+      <b>Cómo reconocerla:</b> ${meta.howToRecognize || meta.patternTip}<br><br>
+      <b>Condiciones exactas:</b> ${meta.conditions}<br><br>
+      <b>Qué se elimina y por qué:</b> ${meta.whatAndWhyEliminate} ${meta.whyItWorks}<br><br>
+      <b>Cuándo NO se puede usar:</b> ${meta.whenNotToApply}<br><br>
+      <b>Cuándo buscarla:</b> ${meta.whenToUse}<br><br>
+      <b>Conviene saber antes:</b> ${meta.prereqConcepts}</div></details>
     <details class="box"><summary>Cómo leer el tablero</summary><div class="in">
       • Los <b>números grandes</b> ya están colocados. Los <b>pequeños</b> son <b>candidatos</b>: números que todavía podrían ir en esa casilla.<br>
       • <b>F3C5</b> significa fila 3, columna 5 (mira los números del borde del tablero).<br>
       • <b>Región</b> = caja de 3×3. Se cuentan de izquierda a derecha y de arriba abajo (1 a 9).<br>
       • Toca <b>⤢</b> arriba a la derecha para agrandar o achicar el tablero.</div></details>`;
+}
+// Paso 1 práctico: tocar una casilla donde el patrón deja tachar.
+function tryCell(idx) {
+  const t = S.aTry || (S.aTry = { done: false, wrong: 0 });
+  S.selected = idx;
+  if (t.done || !S.step) return render();
+  const el = S.step.eliminations.filter(e => e.cell === idx);
+  if (el.length) {
+    t.done = true;
+    const p = prog(); if (!p.learnedTheory) { p.learnedTheory = true; recompute(); }
+    setMsg(`¡Bien! En ${cellName(idx)} se tacha el ${el.map(e => e.digit).join(' y el ')}. En rojo están todas las demás.`, 'success');
+  } else {
+    t.wrong = (t.wrong || 0) + 1;
+    if (S.grid[idx]) setMsg(`${cellName(idx)} ya tiene número: ahí no hay nada que tachar.`, 'warn');
+    else if (S.step.patternCells.includes(idx)) setMsg(`${cellName(idx)} es parte del patrón (azul). El patrón es el que “empuja”: busca una casilla afectada por él.`, 'warn');
+    else setMsg(`En ${cellName(idx)} este patrón no deja tachar nada. Busca una casilla que comparta fila, columna o región con las casillas azules y tenga alguno de esos números.`, 'warn');
+  }
+  saveProgress(); render();
 }
 
 function panelObserve(meta) {
@@ -3042,7 +3084,7 @@ function panelObserve(meta) {
     <div class="p">${plain}</div>
     <div class="box violet"><b class="t">En este tablero</b><div class="p">${e.text}</div></div>
     ${extra}
-    <div class="links"><button class="btn ghost sm" data-act="otherExample">🔀 Ver otro ejemplo</button><button class="btn ghost sm" data-act="toTheory">📖 Repasar la idea</button></div>`;
+    <div class="links"><button class="btn ghost sm" data-act="toPractice">✋ Ya entendí: practicar</button><button class="btn ghost sm" data-act="otherExample">🔀 Ver otro ejemplo</button><button class="btn ghost sm" data-act="toTheory">📖 Repasar la idea</button></div>`;
 }
 
 function doneLog() {
@@ -3151,7 +3193,8 @@ function renderDock() {
   if (S.stage === 'R') {
     d.innerHTML = dockReto();
   } else if (S.stage === 'A') {
-    d.innerHTML = `<button class="btn pri" data-act="toExample">Ver el ejemplo paso a paso →</button>`;
+    const ok = S.aTry && S.aTry.done;
+    d.innerHTML = `<div class="row"><button class="btn sec grow" data-act="toExample">Ver ejemplo</button><button class="btn ${ok ? 'ok' : 'pri'} grow" data-act="toPractice">Practicar yo →</button></div>`;
   } else if (S.stage === 'B') {
     d.innerHTML = `<div class="row">
       <button class="btn sec" data-act="obsPrev" ${S.obsIdx === 0 ? 'disabled' : ''} aria-label="Paso anterior">‹ Atrás</button>
@@ -3180,7 +3223,7 @@ function renderMenu() {
   map.classList.toggle('hidden', S.menuTab !== 'map');
   stats.classList.toggle('hidden', S.menuTab !== 'stats');
   if (S.menuTab === 'map') {
-    map.innerHTML = `<div class="free-card"><div style="font-weight:800;font-size:16px">🎲 Modo libre</div><div style="font-size:13.5px;opacity:.95">Sudokus completos y difíciles que se resuelven con las técnicas que ya practicaste o dominaste (${learnedRanks().size} de 23). Mientras más aprendas, más difíciles.</div><button class="btn" data-act="startFree">${S.retos.__free && !S.retos.__free.done && !S.retos.__free.lost ? 'Seguir el sudoku' : 'Empezar'}</button></div>` +
+    map.innerHTML = dailyCard() + `<div class="free-card"><div style="font-weight:800;font-size:16px">🎲 Modo libre</div><div style="font-size:13.5px;opacity:.95">Sudokus completos y difíciles que se resuelven con las técnicas que ya practicaste o dominaste (${learnedRanks().size} de 23). Mientras más aprendas, más difíciles.</div><button class="btn" data-act="startFree">${S.retos.__free && !S.retos.__free.done && !S.retos.__free.lost ? 'Seguir el sudoku' : 'Empezar'}</button></div>` +
       CURRICULUM_LEVELS.map(l => `<div class="lvl" style="margin-top:14px"><div class="lvl-h"><div class="h">${l.name}</div><div class="small">${l.badge}</div></div>
         ${TECHNIQUE_ORDER.filter(t => TECHNIQUE_META[t.id].level === l.level).map(t => {
           const m = TECHNIQUE_META[t.id], p = prog(t.id), [lab, cl] = statusLabel(p.status, p);
@@ -3204,10 +3247,10 @@ function renderMenu() {
         <div class="stat"><div class="k">Pistas usadas</div><div class="val" style="color:var(--amber)">${st.hintsUsed}</div></div>
         <div class="stat"><div class="k">Sudokus completos</div><div class="val" style="color:var(--indigo)">${st.retosSolved || 0}</div></div>
         <div class="stat"><div class="k">Autonomía media</div><div class="val">${avg}%</div></div>
-        <div class="stat"><div class="k">Mejor tiempo (libre)</div><div class="val">${(() => { const f = S.progress.history.filter(h => h.free); return f.length ? fmtTime(Math.min(...f.map(h => h.sec))) : '—'; })()}</div></div>
+        <div class="stat"><div class="k">Mejor tiempo (libre)</div><div class="val">${(() => { const f = S.progress.history.filter(h => h.free && !h.daily); return f.length ? fmtTime(Math.min(...f.map(h => h.sec))) : '—'; })()}</div></div>
       </div>
       <div class="lvl" style="margin-top:14px"><div class="lvl-h"><div class="h">⏱ Mis sudokus resueltos</div><div class="small">Tiempo, errores y pistas de cada sudoku completo (los últimos 30).</div></div>
-        <div class="hist">${S.progress.history.slice(0, 30).map(h => `<div><span style="min-width:0"><b>${h.free ? '🎲 Libre' : TECHNIQUE_META[h.tech] ? TECHNIQUE_META[h.tech].shortName : h.tech}</b><br><span class="small">${new Date(h.t).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })} ${new Date(h.t).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</span></span><span style="text-align:right"><b class="clock">${fmtTime(h.sec)}</b><br><span class="small">❌ ${h.errors} · 💡 ${h.hints}${h.auto ? ' · ✨' : ''}</span></span></div>`).join('') || '<div class="small">Todavía no hay sudokus terminados. Al resolver uno, aquí queda su tiempo.</div>'}</div></div>
+        <div class="hist">${S.progress.history.slice(0, 30).map(h => `<div><span style="min-width:0"><b>${h.daily ? '📅 Diario · ' + dailyName(h.daily)[2] : h.free ? '🎲 Libre' : TECHNIQUE_META[h.tech] ? TECHNIQUE_META[h.tech].shortName : h.tech}</b><br><span class="small">${new Date(h.t).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })} ${new Date(h.t).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</span></span><span style="text-align:right"><b class="clock">${fmtTime(h.sec)}</b><br><span class="small">❌ ${h.errors} · 💡 ${h.hints}${h.auto ? ' · ✨' : ''}</span></span></div>`).join('') || '<div class="small">Todavía no hay sudokus terminados. Al resolver uno, aquí queda su tiempo.</div>'}</div></div>
       <div class="lvl" style="margin-top:14px">${TECHNIQUE_ORDER.map(t => {
         const m = TECHNIQUE_META[t.id], p = prog(t.id), [lab, cl] = statusLabel(p.status, p);
         return `<div class="tech"><span class="num">${m.order}</span><span style="flex:1;min-width:0"><div class="nm">${m.shortName}</div>
@@ -3263,12 +3306,12 @@ const RETOS_KEY = 'sudoku_academy_retos_v1';
 function saveSession() {
   try {
     let s;
-    if (S.stage === 'R') s = { v: 1, stage: 'R', techId: S.techId, hl: S.hl, free: !!S.free };
+    if (S.stage === 'R') s = { v: 1, stage: 'R', techId: S.techId, hl: S.hl, free: !!S.free, daily: (S.reto && S.reto.daily) || null };
     else if (S.ex) s = {
       v: 1, techId: S.techId, ref: S.ref, stage: S.stage, free: S.free, ex: { ...S.ex, cands: Array.from(S.ex.cands) },
       grid: S.grid, cands: Array.from(S.cands), eliminated: S.eliminated, picked: S.picked, selected: S.selected,
       hint: S.hint, showTargets: S.showTargets, usedAuto: S.usedAuto, obsIdx: S.obsIdx, flow: S.flow,
-      singles: S.singles, singleShown: S.singleShown, hl: S.hl, exSec: S.exSec
+      singles: S.singles, singleShown: S.singleShown, hl: S.hl, exSec: S.exSec, aTry: S.aTry
     };
     if (s) localStorage.setItem(SESSION_KEY, JSON.stringify(s));
     localStorage.setItem(RETOS_KEY, JSON.stringify(S.retos));
@@ -3284,7 +3327,7 @@ function restoreSession() {
   try {
     if (s && s.v === 1 && TECHNIQUE_META[s.techId]) {
       if (s.stage === 'R') {
-        if (s.free && S.retos.__free) openFree(); else openReto(s.techId);
+        if (s.daily && S.retos.__daily && S.retos.__daily.slots) openDaily(s.daily); else if (s.free && S.retos.__free) openFree(); else openReto(s.techId);
         const h = Array.isArray(s.hl) ? s.hl : s.filter ? [s.filter] : [];
         if (h.length) { S.hl = h.slice(0, hlMode()); render(); }
         return;
@@ -3297,7 +3340,8 @@ function restoreSession() {
           Object.assign(S, {
             grid: s.grid, cands: s.cands, eliminated: s.eliminated || [], picked: s.picked || [], selected: s.selected ?? -1,
             hint: s.hint || 0, showTargets: !!s.showTargets, usedAuto: !!s.usedAuto, obsIdx: s.obsIdx || 0,
-            flow: s.flow || S.flow, singles: s.singles || [], singleShown: s.singleShown || null, hl: Array.isArray(s.hl) ? s.hl.slice(0, 3) : s.filter ? [s.filter] : [], exSec: s.exSec || 0
+            flow: s.flow || S.flow, singles: s.singles || [], singleShown: s.singleShown || null, hl: Array.isArray(s.hl) ? s.hl.slice(0, 3) : s.filter ? [s.filter] : [], exSec: s.exSec || 0,
+            aTry: s.aTry && typeof s.aTry === 'object' ? s.aTry : { done: false, wrong: 0 }
           });
           if (S.stage === 'B') return setObs(S.obsIdx);
           const fr = S.flow && S.flow.kind === 'eval' && S.flow.result;
@@ -3431,7 +3475,8 @@ function retoInput(cell, d) {
 function retoFinish() {
   const r = S.reto, p = prog();
   r.done = true; r.active = 0;
-  S.progress.history.unshift({ t: Date.now(), tech: r.tech || S.techId, free: !!r.free, sec: r.sec || 0, errors: r.errors, hints: r.hints, auto: r.auto || 0 });
+  S.progress.history.unshift({ t: Date.now(), tech: r.tech || S.techId, free: !!r.free, daily: r.daily || undefined, sec: r.sec || 0, errors: r.errors, hints: r.hints, auto: r.auto || 0 });
+  if (r.daily) dailyRecord(r);
   if (S.progress.history.length > 300) S.progress.history.length = 300;
   if (!r.free) {
     p.retosSolved = (p.retosSolved || 0) + 1;
@@ -3566,10 +3611,10 @@ function pickFree() {
   return { pick: top[Math.floor(Math.random() * top.length)], learned: L.size };
 }
 // Cambia el aspecto del tablero sin cambiar su lógica (números, filas y columnas dentro de su banda, bandas y giro).
-function disguise(g, s) {
-  const dig = [0, ...shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9])];
-  const perm3 = () => { const bands = shuffle([0, 1, 2]), out = []; for (const b of bands) for (const x of shuffle([0, 1, 2])) out.push(b * 3 + x); return out; };
-  const rows = perm3(), cols = perm3(), tr = Math.random() < 0.5;
+function disguise(g, s, rnd = Math.random) {
+  const dig = [0, ...shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9], rnd)];
+  const perm3 = () => { const bands = shuffle([0, 1, 2], rnd), out = []; for (const b of bands) for (const x of shuffle([0, 1, 2], rnd)) out.push(b * 3 + x); return out; };
+  const rows = perm3(), cols = perm3(), tr = rnd() < 0.5;
   const map = str => { const a = str.split('').map(Number), o = []; for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) { const rr = rows[r], cc = cols[c]; o.push(dig[tr ? a[cc * 9 + rr] : a[rr * 9 + cc]]); } return o.join(''); };
   return { g: map(g), s: map(s) };
 }
@@ -3594,6 +3639,120 @@ function openFree(fresh = false) {
   if (r.quick && r.active) hlSet(r.active);
   saveProgress(); render();
   $('panelCol').scrollTop = 0;
+}
+
+// ------------------------------------------------------------------ retos diarios: 3 sudokus nuevos cada día con tus técnicas
+const DAILY_SLOTS = [['e', '🟢', 'Calentamiento'], ['m', '🟡', 'Medio'], ['h', '🔴', 'Difícil']];
+const dailyName = k => DAILY_SLOTS.find(x => x[0] === k) || DAILY_SLOTS[0];
+function todayKey(t = new Date()) { return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; }
+function dayShift(key, n) { const [y, m, d] = key.split('-').map(Number); return todayKey(new Date(y, m - 1, d + n)); }
+function seededRng(str) {
+  let h = 1779033703 ^ str.length;
+  for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; }
+  return () => { h = Math.imul(h ^ h >>> 16, 2246822507); h = Math.imul(h ^ h >>> 13, 3266489909); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
+}
+function dailyLog() { return S.progress.daily || (S.progress.daily = {}); }
+// Los 3 retos de hoy: el mismo día dan los mismos tableros. Solo usan técnicas que ya practicaste;
+// Calentamiento sale del tercio más fácil, Medio del centro y Difícil del tercio más difícil.
+function ensureDaily() {
+  const key = todayKey(), D = S.retos.__daily;
+  if (D && D.date === key && D.slots && D.slots.e) return D;
+  const L = learnedRanks(), rnd = seededRng('sudoku-academy-' + key);
+  const pool = [], seen = new Set();
+  const add = (id, i, u) => { const k = id + ':' + i; if (!seen.has(k)) { seen.add(k); pool.push({ id, i, u, score: Math.max(...u) * 100 + u.length * 10 }); } };
+  for (const id of Object.keys(RETO_INFO)) RETO_INFO[id].forEach((u, i) => { if (u.every(k => L.has(k))) add(id, i, u); });
+  if (pool.length < 3) RETO_INFO.locked_candidates.forEach((u, i) => add('locked_candidates', i, u));
+  pool.sort((a, b) => a.score - b.score || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0) || a.i - b.i);
+  const prev = (D && D.slots && D.slots.e) || S.retos.__free || {}, used = new Set(), slots = {}, n = pool.length;
+  DAILY_SLOTS.forEach(([k], j) => {
+    const lo = Math.floor(n * j / 3), hi = Math.max(lo + 1, Math.floor(n * (j + 1) / 3));
+    let part = pool.slice(lo, hi).filter(x => !used.has(x.id + ':' + x.i));
+    if (!part.length) part = pool.filter(x => !used.has(x.id + ':' + x.i));
+    if (!part.length) part = pool;
+    const pick = part[Math.floor(rnd() * part.length)];
+    used.add(pick.id + ':' + pick.i);
+    const b = RETO_LIBRARY[pick.id][pick.i], d = disguise(b.g, b.s, rnd);
+    slots[k] = {
+      free: true, daily: k, date: key, tech: pick.id, ranks: [...new Set([...L, ...pick.u])].sort((a, b) => a - b), used: pick.u, learned: L.size,
+      givens: d.g, solution: d.s, grid: d.g.split('').map(Number), notes: new Array(81).fill(0), errors: 0, hints: 0, done: false, lost: false,
+      pencil: !!prev.pencil, quick: !!prev.quick, active: 0, sec: 0, auto: 0, n: 1
+    };
+  });
+  S.retos.__daily = { date: key, slots };
+  saveSession();
+  return S.retos.__daily;
+}
+function dailyStreak() {
+  const log = dailyLog(); let k = todayKey(), n = 0;
+  if (!log[k]) k = dayShift(k, -1);
+  while (log[k] && Object.keys(log[k]).length) { n++; k = dayShift(k, -1); }
+  return n;
+}
+function dailyRecord(r) {
+  const log = dailyLog();
+  (log[r.date] || (log[r.date] = {}))[r.daily] = { sec: r.sec || 0, errors: r.errors, hints: r.hints };
+  const keys = Object.keys(log).sort(); while (keys.length > 120) delete log[keys.shift()];
+  const st = dailyStreak(); if (st > (S.progress.dailyBest || 0)) S.progress.dailyBest = st;
+}
+function openDaily(slot) {
+  stopPlay(); closeMenu();
+  const D = ensureDaily();
+  if (!slot || !D.slots[slot]) slot = (DAILY_SLOTS.find(([k]) => !D.slots[k].done) || DAILY_SLOTS[0])[0];
+  const r = D.slots[slot];
+  Object.assign(S, { techId: r.tech, stage: 'R', free: true, ref: 'reto', step: null, flow: null, ped: null, selected: -1, picked: [], msg: null, singleShown: null });
+  if (S.reto !== r) S.retoUndo = [];
+  S.reto = r; S.retoHint = null; S.retoFlash = -1;
+  if (r.quick && r.active) hlSet(r.active);
+  saveProgress(); render();
+  $('panelCol').scrollTop = 0;
+}
+function dailySlotState(r) {
+  if (r.done) return `✅ ${fmtTime(r.sec)}`;
+  if (r.lost) return '✕ Repetir';
+  return r.grid.some((v, i) => v && r.givens[i] === '0') ? '▶ Seguir' : 'Jugar';
+}
+function dailyCard() {
+  const D = ensureDaily(), streak = dailyStreak(), log = dailyLog(), today = todayKey();
+  const wd = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
+  const week = Array.from({ length: 7 }, (_, k) => dayShift(today, k - 6)).map(k => {
+    const [y, m, d] = k.split('-').map(Number), n = log[k] ? Object.keys(log[k]).length : 0;
+    return `<span class="${n ? 'on' : ''} ${k === today ? 'today' : ''}">${wd[new Date(y, m - 1, d).getDay()]}<br>${n ? n + '/3' : '·'}</span>`;
+  }).join('');
+  return `<div class="daily-card">
+    <div class="row" style="justify-content:space-between"><div style="font-weight:800;font-size:16px">📅 Retos de hoy</div><div style="font-weight:800">🔥 ${streak} día${streak === 1 ? '' : 's'}</div></div>
+    <div style="font-size:13.5px;opacity:.95">3 sudokus nuevos cada día que salen solo con las técnicas que ya practicaste (${D.slots.e.learned} de 23). Mañana cambian.</div>
+    <div class="dslots">${DAILY_SLOTS.map(([k, ic, nm]) => { const r = D.slots[k]; return `<button data-daily="${k}" class="${r.done ? 'ok' : r.lost ? 'lost' : ''}"><span>${ic} ${nm}</span><small>${dailySlotState(r)}</small></button>`; }).join('')}</div>
+    <div class="week">${week}</div>
+    ${S.progress.dailyBest ? `<div style="font-size:12px;opacity:.9">Mejor racha: ${S.progress.dailyBest} día${S.progress.dailyBest === 1 ? '' : 's'} seguidos</div>` : ''}</div>`;
+}
+function panelDaily(r) {
+  const [, ic, nm] = dailyName(r.daily);
+  const D = S.retos.__daily, same = D && D.date === r.date;
+  const next = same ? DAILY_SLOTS.find(([k]) => k !== r.daily && !D.slots[k].done) : null;
+  const nextBtn = next ? `<button class="btn pri grow" data-daily-go="${next[0]}">${next[1]} Siguiente: ${next[2]} →</button>` : '';
+  const old = r.date !== todayKey() ? `<div class="box amber"><div class="p">Este reto era del ${r.date}. Ya hay retos nuevos para hoy.</div><div class="row" style="margin-top:8px"><button class="btn pri grow" data-act="dailyNext">📅 Ir a los de hoy</button></div></div>` : '';
+  let state;
+  if (r.done) {
+    const prev = S.progress.history.slice(1).filter(h => h.daily === r.daily);
+    const best = prev.length ? Math.min(...prev.map(h => h.sec)) : null;
+    const rec = best === null ? 'Es tu primer reto diario de este nivel.' : r.sec < best ? `🏅 ¡Nuevo récord en ${nm}! Antes: ${fmtTime(best)}.` : `Tu mejor tiempo en ${nm} es ${fmtTime(best)}.`;
+    const all = same && DAILY_SLOTS.every(([k]) => D.slots[k].done);
+    const streak = dailyStreak();
+    state = `<div class="box green"><b class="t">🎉 ¡Reto ${nm} resuelto!</b><div class="p">⏱ <b>${fmtTime(r.sec)}</b> · ❌ ${r.errors} error(es) · 💡 ${r.hints} pista(s)${r.auto ? ` · ✨ ${r.auto} autocompletadas` : ''}.<br>${rec}<br>🔥 Racha: <b>${streak} día${streak === 1 ? '' : 's'}</b>.</div></div>
+      <div class="box"><b class="t">Técnicas que necesitaba</b><div class="p">${r.used.map(k => TECHNIQUE_META[TECHNIQUE_ORDER[k].id].shortName).join(' · ')}</div></div>
+      ${all ? `<div class="box green"><b class="t">🏁 ¡Terminaste los 3 retos de hoy!</b><div class="p">Mañana salen 3 nuevos. Si quieres seguir, prueba el modo libre.</div></div>` : ''}
+      <div class="row">${nextBtn}${all ? '<button class="btn ind grow" data-act="startFree">🎲 Modo libre</button>' : ''}<button class="btn sec grow" data-act="openMenu">☰ Menú</button></div>`;
+  } else if (r.lost) {
+    state = `<div class="box red"><b class="t">Se acabaron las vidas</b><div class="p">Cometiste 3 errores. Puedes repetir este mismo reto desde cero: sigue contando para hoy.</div></div>
+      <div class="row"><button class="btn sec grow" data-act="retoRetry">↻ Repetir este</button>${nextBtn}</div>`;
+  } else {
+    state = `<div class="links"><button class="btn ghost sm" data-act="retoHint">💡 Pista</button><button class="btn ghost sm" data-act="retoFill">📝 Rellenar notas</button><button class="btn ghost sm" data-act="retoRetry">↻ Empezar de nuevo</button></div>`;
+  }
+  return `
+    <div class="row" style="justify-content:space-between"><div class="kicker" style="color:#ea580c">📅 Reto del día · ${ic} ${nm}</div><span class="chip">${DAILY_SLOTS.findIndex(x => x[0] === r.daily) + 1} de 3</span></div>
+    ${old}
+    ${!r.done && !r.lost ? `<div class="box violet"><b class="t">Con las técnicas que ya aprendiste</b><div class="p">Este sudoku sale solo con tus ${r.learned || 0} técnica(s) practicadas o dominadas. No te digo cuál toca: descúbrelo tú. La 💡 Pista te dice qué técnica usar si te atascas. Tienes 3 vidas.</div></div>` : ''}
+    ${state}${retoHelp()}`;
 }
 
 function renderRetoBoard() {
@@ -3634,15 +3793,28 @@ function renderRetoBoard() {
     (r.pencil ? '<span>✏️ Notas</span>' : '') + (r.quick ? `<span>⚡ Rápido${r.active ? ': ' + r.active : ''}</span>` : '');
 }
 
+function retoHelp() {
+  return `<details class="box"><summary>Cómo se juega</summary><div class="in">
+      • <b>Normal:</b> toca una casilla vacía y luego el número de abajo.<br>
+      • <b>Resaltar:</b> los mismos números de abajo resaltan. Sin casilla vacía elegida, tocar un número lo resalta (otra vez lo quita). <b>🔦 1 · 2 · 3:</b> resalta por 1, por 2 o por 3 números. Con 2 o 3, el primero que tocas queda <b>fijo</b> (azul lleno) y el último (raya de color) cambia cada vez que tocas otro número: así combinas el fijo con todos los demás. Toca el fijo otra vez para soltarlo.<br>
+      • <b>Mantén presionado</b> un número para sumarlo o quitarlo del resaltado sin colocarlo (sirve también en modo Rápido). <b>🔦✕</b> quita todo el resaltado.<br>
+      • Con 2–3 números resaltados, las casillas que tienen todos esos números en sus notas se ven amarillas, y con borde naranja las que <b>solo</b> tienen números resaltados (par/trío desnudo).<br>
+      • <b>⚡ Rápido:</b> elige un número y toca todas las casillas donde va; se queda elegido hasta que toques otro (o el mismo para soltarlo).<br>
+      • <b>✏️ Notas:</b> con el lápiz encendido, los números se anotan pequeños (tocar otra vez los quita).<br>
+      • <b>⌫ Borrar</b> limpia la casilla elegida y <b>↶</b> deshace.<br>
+      • El tiempo corre mientras juegas y se guarda con tus errores al terminar. Con 3 errores se acaba el tablero.<br>
+      • <b>✨ Autocompletar</b> aparece al final, cuando lo que falta (${AUTO_MAX} casillas o menos) sale con números obvios.</div></details>`;
+}
 function panelReto(meta) {
   const r = S.reto, p = prog();
+  if (r && r.daily) return panelDaily(r);
   const solved = p.retosSolved || 0;
   if (!r) return `<div class="box amber"><b class="t">Sin tableros</b><div class="p">Esta técnica todavía no tiene sudokus completos.</div></div>`;
   const later = rankOf(S.techId) > 19 ? ' (sin usar AIC ni cadenas de forzado)' : S.techId === 'jellyfish' ? ' de subconjuntos' : '';
   const jelly = S.techId === 'jellyfish' ? ' Ojo: un Jellyfish siempre tiene un “gemelo” más pequeño (X-Wing o Swordfish) en la otra dirección; si lo ves así, también vale.' : '';
   let state = '';
   if (r.done) {
-    const prev = S.progress.history.slice(1).filter(h => r.free ? h.free : !h.free && h.tech === S.techId);
+    const prev = S.progress.history.slice(1).filter(h => r.free ? h.free && !h.daily : !h.free && h.tech === S.techId);
     const best = prev.length ? Math.min(...prev.map(h => h.sec)) : null;
     const rec = best === null ? 'Es tu primer tiempo guardado aquí.' : r.sec < best ? `🏅 ¡Nuevo récord! Antes tu mejor tiempo era ${fmtTime(best)}.` : `Tu mejor tiempo ${r.free ? 'en modo libre' : 'en ' + meta.shortName} es ${fmtTime(best)}.`;
     state = `<div class="box green"><b class="t">🎉 ¡Sudoku resuelto completo!</b><div class="p">⏱ Tiempo <b>${fmtTime(r.sec)}</b> · ❌ ${r.errors} error(es) · 💡 ${r.hints} pista(s)${r.auto ? ` · ✨ ${r.auto} autocompletadas` : ''}.<br>${rec}${r.free ? '' : ` Llevas <b>${solved}</b> sudoku(s) completos de ${meta.shortName}.`}</div></div>
@@ -3656,16 +3828,7 @@ function panelReto(meta) {
   } else {
     state = `<div class="links"><button class="btn ghost sm" data-act="retoHint">💡 Pista</button><button class="btn ghost sm" data-act="retoFill">📝 Rellenar notas</button><button class="btn ghost sm" data-act="retoRetry">↻ Empezar de nuevo</button><button class="btn ghost sm" data-act="retoNew">🔀 Otro sudoku</button></div>`;
   }
-  const help = `<details class="box"><summary>Cómo se juega</summary><div class="in">
-      • <b>Normal:</b> toca una casilla vacía y luego el número de abajo.<br>
-      • <b>Resaltar:</b> los mismos números de abajo resaltan. Sin casilla vacía elegida, tocar un número lo resalta (otra vez lo quita). <b>🔦 1 · 2 · 3:</b> resalta por 1, por 2 o por 3 números. Con 2 o 3, el primero que tocas queda <b>fijo</b> (azul lleno) y el último (raya de color) cambia cada vez que tocas otro número: así combinas el fijo con todos los demás. Toca el fijo otra vez para soltarlo.<br>
-      • <b>Mantén presionado</b> un número para sumarlo o quitarlo del resaltado sin colocarlo (sirve también en modo Rápido). <b>🔦✕</b> quita todo el resaltado.<br>
-      • Con 2–3 números resaltados, las casillas que tienen todos esos números en sus notas se ven amarillas, y con borde naranja las que <b>solo</b> tienen números resaltados (par/trío desnudo).<br>
-      • <b>⚡ Rápido:</b> elige un número y toca todas las casillas donde va; se queda elegido hasta que toques otro (o el mismo para soltarlo).<br>
-      • <b>✏️ Notas:</b> con el lápiz encendido, los números se anotan pequeños (tocar otra vez los quita).<br>
-      • <b>⌫ Borrar</b> limpia la casilla elegida y <b>↶</b> deshace.<br>
-      • El tiempo corre mientras juegas y se guarda con tus errores al terminar. Con 3 errores se acaba el tablero.<br>
-      • <b>✨ Autocompletar</b> aparece al final, cuando lo que falta (${AUTO_MAX} casillas o menos) sale con números obvios.</div></details>`;
+  const help = retoHelp();
   if (r.free) return `
     <div class="row" style="justify-content:space-between"><div class="kicker" style="color:var(--indigo)">🎲 Modo libre · Sudoku difícil</div><span class="chip">#${r.n || 1}</span></div>
     ${!r.done && !r.lost ? `<div class="box violet"><b class="t">Con lo que ya aprendiste</b><div class="p">Elegido entre los más difíciles que se resuelven con tus ${r.learned || 0} técnica(s) practicadas o dominadas. No te digo cuál técnica toca: descúbrelo tú. Tienes 3 vidas.</div></div>` : ''}
@@ -3727,13 +3890,25 @@ const ACTIONS = {
   closeMsg() { S.msg = null; render(); },
   toExample() { loadExercise(S.techId, 'b0', 'B'); },
   toTheory() { loadExercise(S.techId, 'b0', 'A'); },
-  toPractice() { loadExercise(S.techId, 'b1', 'C'); },
+  toPractice() {
+    const p = prog();
+    if ((S.stage === 'A' || S.stage === 'B') && (!p.learnedTheory || !p.observedExample)) { p.learnedTheory = true; p.observedExample = true; recompute(); saveProgress(); }
+    loadExercise(S.techId, 'b1', 'C');
+  },
+  dailyNext() { openDaily(); },
+  openMenu() { openMenu(); },
+  aShow() {
+    S.aTry = { ...(S.aTry || {}), done: true, shown: true };
+    const p = prog(); if (!p.learnedTheory) { p.learnedTheory = true; recompute(); }
+    setMsg(`Mira en rojo: ${S.ped.elimNames.join(', ')}. Ahí es donde el patrón deja tachar.`, 'info');
+    saveProgress(); render();
+  },
   toEval() { loadExercise(S.techId, 'b2', 'D'); },
   toEval2() { loadExercise(S.techId, 'iso', 'E'); },
   toReto() { openReto(S.techId); },
-  retoNew() { if (S.free) openFree(true); else openReto(S.techId, true); },
+  retoNew() { if (S.reto && S.reto.daily) openDaily(); else if (S.free) openFree(true); else openReto(S.techId, true); },
   retoRetry() {
-    if (S.free) { const r = S.reto; Object.assign(r, { grid: r.givens.split('').map(Number), notes: new Array(81).fill(0), errors: 0, hints: 0, done: false, lost: false, active: 0, sec: 0, auto: 0 }); S.retoUndo = []; openFree(); }
+    if (S.free) { const r = S.reto; Object.assign(r, { grid: r.givens.split('').map(Number), notes: new Array(81).fill(0), errors: 0, hints: 0, done: false, lost: false, active: 0, sec: 0, auto: 0 }); S.retoUndo = []; if (r.daily) openDaily(r.daily); else openFree(); }
     else { newReto(S.techId, true); openReto(S.techId); }
     setMsg('Mismo tablero, desde cero y con 3 vidas.', 'info'); render();
   },
@@ -3802,8 +3977,8 @@ const ACTIONS = {
   resetAll() {
     if (!S.confirmReset) { S.confirmReset = true; return renderMenu(); }
     try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem('sudoku_academy_progress_v1'); localStorage.removeItem(RETOS_KEY); } catch (e) {}
-    S.retos = {}; if (S.stage === 'R') { if (S.free) { newFree(); S.reto = S.retos.__free; } else { newReto(S.techId); S.reto = S.retos[S.techId]; } }
-    S.progress = { techniques: {}, stats: freshStats(), history: [], freeSeen: [] }; initDefaultProgress(); saveProgress();
+    S.retos = {}; if (S.stage === 'R') { if (S.reto && S.reto.daily) { S.reto = ensureDaily().slots[S.reto.daily]; } else if (S.free) { newFree(); S.reto = S.retos.__free; } else { newReto(S.techId); S.reto = S.retos[S.techId]; } }
+    S.progress = { techniques: {}, stats: freshStats(), history: [], freeSeen: [], daily: {}, dailyBest: 0 }; initDefaultProgress(); saveProgress();
     S.confirmReset = false; renderMenu(); render();
   }
 };
@@ -3817,6 +3992,7 @@ function onPanelClick(e) {
   const t = e.target.closest('button'); if (!t || t.disabled) return;
   const f = S.flow;
   if (t.dataset.act && ACTIONS[t.dataset.act]) return ACTIONS[t.dataset.act]();
+  if (t.dataset.dailyGo) return openDaily(t.dataset.dailyGo);
   if (t.dataset.obs !== undefined) { stopPlay(); return setObs(Number(t.dataset.obs)); }
   if (t.dataset.digit) return onDigit(Number(t.dataset.digit));
   if (t.dataset.rdigit) return retoDigit(Number(t.dataset.rdigit));
@@ -3893,13 +4069,15 @@ function bind() {
   $('dock').addEventListener('contextmenu', e => { if (e.target.closest('[data-rdigit]')) e.preventDefault(); });
   $('menuMap').addEventListener('click', e => {
     const t = e.target.closest('button'); if (!t) return;
-    if (t.dataset.open) { closeMenu(); openPending(t.dataset.open); }
+    if (t.dataset.daily) openDaily(t.dataset.daily);
+    else if (t.dataset.open) { closeMenu(); openPending(t.dataset.open); }
     else if (t.dataset.theme) ACTIONS.theme(t.dataset.theme);
     else if (t.dataset.act) ACTIONS[t.dataset.act]();
   });
   $('menuStats').addEventListener('click', e => { const t = e.target.closest('button'); if (!t) return; if (t.dataset.theme) ACTIONS.theme(t.dataset.theme); else if (t.dataset.act) ACTIONS[t.dataset.act](); });
   document.querySelectorAll('[data-mtab]').forEach(b => b.addEventListener('click', () => { S.menuTab = b.dataset.mtab; S.confirmReset = false; renderMenu(); }));
   $('menuBtn').addEventListener('click', openMenu);
+  $('dailyBtn').addEventListener('click', () => openDaily());
   $('menuClose').addEventListener('click', closeMenu);
   $('boardSizeBtn').addEventListener('click', () => { S.boardSize = { M: 'L', L: 'S', S: 'M' }[S.boardSize]; saveProgress(); renderHeader(); });
   $('stageTabs').addEventListener('click', e => {

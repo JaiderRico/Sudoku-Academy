@@ -1,5 +1,6 @@
-## Sudoku Academy 1.4.0
+## Sudoku Academy 1.5.0
 
-- 🔦 Resaltar por **1, 2 o 3** números: en “Resolver” está el selector 🔦 1 · 2 · 3 junto a las herramientas (en las lecciones, el botón “Resaltar por…” al lado de los números).
-- 📌 Con 2 o 3, el primer número que tocas queda **fijo** (azul lleno) y el último (raya naranja) cambia cada vez que tocas otro. Así combinas el fijo con todos los demás sin volver a elegirlo. Toca el fijo otra vez para soltarlo.
-- El botón Borrar ahora es solo ⌫ para que quepa todo en el teléfono.
+- 📅 **Retos de hoy:** cada día salen 3 sudokus nuevos (🟢 Calentamiento, 🟡 Medio y 🔴 Difícil) que se resuelven solo con las técnicas que ya practicaste. Ábrelos con el botón 📅 de arriba o desde el menú ☰.
+- 🔥 Racha de días seguidos y los últimos 7 días marcados, para no perder el hábito.
+- 🎯 **Paso 1 más práctico:** ahora se llama “Idea”. Lees la idea en simple y de una vez la pruebas: tocas la casilla donde el patrón deja tachar. La teoría larga quedó guardada en “Teoría completa (opcional)”.
+- ✋ En el ejemplo puedes saltar directo a practicar cuando ya lo entendiste.
