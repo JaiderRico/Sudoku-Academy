@@ -1,0 +1,63 @@
+# Prueba en un emulador de Android que la app se actualiza sin salir de ella.
+# Instala una versión 1.0.0 de prueba (firmada con la llave de siempre), toca "Actualizar ahora"
+# y confirma en la ventana de Android; pasa si queda instalada la versión del último Release.
+name: Probar actualización en emulador
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Activar KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - name: Construir y firmar versión 1.0.0 de prueba
+        env:
+          FIRMA_PEM: ${{ secrets.FIRMA_PEM }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          BT=$(ls -d "$SDK"/build-tools/* | sort -V | tail -1)
+          JAR=$(ls -d "$SDK"/platforms/android-* | sort -V | tail -1)/android.jar
+          mkdir -p trabajo/clases trabajo/nativo
+          javac -source 8 -target 8 -Xlint:-options -encoding UTF-8 -bootclasspath "$JAR" -d trabajo/clases $(find nativo -name '*.java')
+          "$BT/d8" --release --min-api 24 --lib "$JAR" --output trabajo/nativo $(find trabajo/clases -name '*.class')
+          python3 herramientas/construir_apk.py --version 1.0.0 --dex trabajo/nativo/classes.dex --salida trabajo/sin_firmar.apk
+          K="$RUNNER_TEMP/firma"; mkdir -p "$K"; chmod 700 "$K"
+          (umask 077; printf '%s\n' "$FIRMA_PEM" > "$K/clave.pem")
+          openssl pkcs8 -topk8 -nocrypt -in "$K/clave.pem" -outform DER -out "$K/key.pk8"
+          openssl x509 -in "$K/clave.pem" -outform DER -out "$K/cert.der"
+          "$BT/zipalign" -f -p 4 trabajo/sin_firmar.apk trabajo/alineada.apk
+          "$BT/apksigner" sign --key "$K/key.pk8" --cert "$K/cert.der" --out trabajo/prueba.apk trabajo/alineada.apk
+          rm -rf "$K"
+          echo "ESPERADA=$(gh release view --json tagName -q .tagName -R "$GITHUB_REPOSITORY" 2>/dev/null | sed 's/^v//' || true)" >> "$GITHUB_ENV"
+      - name: Versión esperada
+        run: |
+          [ -n "${ESPERADA:-}" ] || ESPERADA=$(curl -s https://api.github.com/repos/$GITHUB_REPOSITORY/releases/latest | python3 -c 'import json,sys;print(json.load(sys.stdin)["tag_name"].lstrip("v"))')
+          echo "ESPERADA=$ESPERADA" >> "$GITHUB_ENV"; echo "Debe quedar: $ESPERADA"
+      - name: Emulador
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: |
+            adb install -r trabajo/prueba.apk
+            adb shell appops set com.jaider.sudokuacademy REQUEST_INSTALL_PACKAGES allow
+            adb shell am start -n com.jaider.sudokuacademy/.MainActivity
+            sleep 8
+            bash herramientas/prueba_emulador.sh "$ESPERADA"
+      - name: Capturas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: capturas
+          path: trabajo/capturas

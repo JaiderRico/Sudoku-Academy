@@ -9,7 +9,7 @@ name: Publicar APK
 on:
   push:
     branches: [main]
-    paths: ['app/**', 'version.txt', 'notas.md', 'herramientas/**']
+    paths: ['app/**', 'version.txt', 'notas.md', 'herramientas/**', 'nativo/**']
   workflow_dispatch:
     inputs:
       solo_probar:
@@ -39,10 +39,21 @@ jobs:
           SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
           BT=$(ls -d "$SDK"/build-tools/* | sort -V | tail -1)
           echo "BT=$BT" >> "$GITHUB_ENV"
+          PLAT=$(ls -d "$SDK"/platforms/android-* | sort -V | tail -1)
+          echo "ANDROID_JAR=$PLAT/android.jar" >> "$GITHUB_ENV"
           echo "VERSION=$(tr -d '[:space:]' < version.txt)" >> "$GITHUB_ENV"
 
+      - name: Compilar código nativo (nativo/ → classes.dex)
+        run: |
+          set -euo pipefail
+          echo "android.jar: $ANDROID_JAR"
+          mkdir -p trabajo/clases trabajo/nativo
+          javac -source 8 -target 8 -Xlint:-options -encoding UTF-8 -bootclasspath "$ANDROID_JAR" -d trabajo/clases $(find nativo -name '*.java')
+          "$BT/d8" --release --min-api 24 --lib "$ANDROID_JAR" --output trabajo/nativo $(find trabajo/clases -name '*.class')
+          ls -l trabajo/nativo
+
       - name: Construir APK
-        run: python3 herramientas/construir_apk.py --salida trabajo/sin_firmar.apk
+        run: python3 herramientas/construir_apk.py --dex trabajo/nativo/classes.dex --salida trabajo/sin_firmar.apk
 
       - name: Revisar APK con las herramientas oficiales
         run: |
@@ -51,6 +62,8 @@ jobs:
           unzip -o -q trabajo/sin_firmar.apk classes.dex -d trabajo/dex
           "$BT/dexdump" -d trabajo/dex/classes.dex > trabajo/dexdump.txt
           grep -q "MainActivity" trabajo/dexdump.txt
+          grep -q "PackageInstaller" trabajo/dexdump.txt
+          "$BT/aapt2" dump xmltree trabajo/sin_firmar.apk --file AndroidManifest.xml | grep -E "REQUEST_INSTALL_PACKAGES|launchMode"
           echo "✅ Manifest, recursos y código válidos"
 
       - name: Firmar

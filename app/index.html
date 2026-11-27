@@ -50,6 +50,10 @@ button:disabled{opacity:.35;cursor:default}
 .upd .row a,.upd .row button{min-height:38px;border-radius:10px;font-weight:800;font-size:14px;display:inline-flex;align-items:center;justify-content:center;padding:0 12px;text-decoration:none}
 .upd .row a{background:#fff;color:#4338ca;flex:1}
 .upd .row button{background:rgba(255,255,255,.18);color:#fff}
+.upd .row button.go{background:#fff;color:#4338ca;flex:1}
+.upd .bar{height:8px;border-radius:6px;background:rgba(255,255,255,.25);overflow:hidden}
+.upd .bar i{display:block;height:100%;background:#fff;border-radius:6px;transition:width .2s}
+.upd .st{font-size:12.5px;font-weight:700}
 /* Stage tabs */
 .stages{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:0 8px 6px;background:var(--card);border-bottom:1px solid var(--line);flex:none}
 .stages button{padding:6px 2px;border-radius:9px;font-size:12.5px;font-weight:700;color:var(--muted);background:var(--bg);line-height:1.15;display:flex;align-items:center;justify-content:center;gap:4px}
@@ -3288,9 +3292,9 @@ async function buscarActualizacion(manual = false) {
     try { localStorage.setItem('sudoku_upd_check', String(Date.now())); } catch (e) {}
     if (/^\d+\.\d+\.\d+$/.test(nueva) && cmpVer(nueva, APP_VERSION) > 0) {
       const notas = String(rel.body || '').replace(/^#+.*$/gm, '').replace(/\*\*/g, '').trim();
-      $('updBar').innerHTML = `<div class="t">⬆️ Nueva versión ${nueva} disponible</div>${notas ? `<div class="d">${notas.replace(/</g, '&lt;')}</div>` : ''}
-        <div class="row"><a href="${APK_URL}">Descargar e instalar</a><button data-upd="later">Luego</button></div>
-        <div style="font-size:11.5px;opacity:.9">Se descarga en el navegador; al terminar, toca la notificación para instalar. Tu progreso se conserva.</div>`;
+      const asset = (rel.assets || []).find(x => x.name === 'SudokuAcademy.apk');
+      S.upd = { ver: nueva, notas, url: (asset && asset.browser_download_url) || APK_URL, estado: S.upd && S.upd.ver === nueva ? S.upd.estado : null, pct: 0 };
+      renderUpd();
       $('updBar').classList.remove('hidden');
       S.updMsg = `Hay una versión nueva: ${nueva}.`;
     } else S.updMsg = `Tienes la última versión (${APP_VERSION}).`;
@@ -3299,6 +3303,42 @@ async function buscarActualizacion(manual = false) {
   }
   if (manual) renderMenu();
 }
+
+// Actualizar sin salir de la app: el APK (desde 1.6.0) trae window.Android.instalar(url), que descarga
+// la versión nueva y abre el instalador de Android. Las versiones viejas abren el navegador.
+const puedeInstalarAqui = () => !!(window.Android && typeof window.Android.instalar === 'function');
+function renderUpd() {
+  const u = S.upd; if (!u) return;
+  const bar = $('updBar');
+  const e = u.estado;
+  let cuerpo;
+  if (e === 'progreso') cuerpo = `<div class="st">Descargando… ${u.pct} %</div><div class="bar"><i style="width:${u.pct}%"></i></div><div style="font-size:11.5px;opacity:.9">Puedes seguir jugando mientras descarga.</div>`;
+  else if (e === 'instalando' || e === 'confirmar') cuerpo = `<div class="st">✅ Descargada. Toca <b>Actualizar</b> en la ventana de Android.</div><div style="font-size:11.5px;opacity:.9">La app se cierra para actualizarse; ábrela otra vez y ya tendrás la nueva. Tu progreso se conserva.</div>`;
+  else if (e === 'permiso') cuerpo = `<div class="st">Activa <b>“Permitir de esta fuente”</b> para Sudoku Academy y vuelve con ◁ atrás: la descarga sigue sola.</div><div style="font-size:11.5px;opacity:.9">Solo se pide la primera vez.</div>`;
+  else {
+    const aviso = e === 'error' ? `<div class="st">⚠️ ${String(u.msg || '').replace(/</g, '&lt;')}</div>` : e === 'cancelado' ? '<div class="st">Cancelaste la instalación.</div>' : e === 'permiso_no' ? '<div class="st">Sin ese permiso no se puede actualizar desde aquí. Puedes intentarlo otra vez.</div>' : '';
+    cuerpo = `${u.notas ? `<div class="d">${u.notas.replace(/</g, '&lt;')}</div>` : ''}${aviso}
+      <div class="row">${puedeInstalarAqui() ? `<button class="go" data-upd="install">⬇️ Actualizar ahora</button>` : `<a href="${APK_URL}">Descargar e instalar</a>`}<button data-upd="later">Luego</button></div>
+      ${puedeInstalarAqui() ? '<div style="font-size:11.5px;opacity:.9">Se descarga e instala aquí mismo, sin salir de la app. Tu progreso se conserva.</div>' : '<div style="font-size:11.5px;opacity:.9">Se descarga en el navegador; al terminar, toca la notificación para instalar. Tu progreso se conserva. Desde esta versión, las siguientes se instalarán sin salir de la app.</div>'}`;
+  }
+  bar.innerHTML = `<div class="t">⬆️ Nueva versión ${u.ver} disponible</div>${cuerpo}`;
+  bar.classList.remove('hidden');
+}
+function instalarAqui() {
+  const u = S.upd; if (!u || !puedeInstalarAqui()) return;
+  u.estado = 'progreso'; u.pct = 0; u.msg = ''; renderUpd();
+  try { window.Android.instalar(u.url); } catch (e) { u.estado = 'error'; u.msg = 'No se pudo iniciar la descarga.'; renderUpd(); }
+}
+// El código nativo llama esto con el avance: progreso (0–100), permiso, permiso_no, instalando, confirmar, listo, cancelado, error.
+window.onDescarga = (estado, valor) => {
+  const u = S.upd; if (!u) return;
+  u.estado = estado;
+  if (estado === 'progreso') u.pct = Math.max(0, Math.min(100, Number(valor) || 0));
+  if (estado === 'error') u.msg = valor;
+  if (estado === 'listo') { u.estado = 'instalando'; }
+  renderUpd();
+  if (estado === 'instalando') saveProgress();   // por si Android cierra la app para actualizar
+};
 
 // ------------------------------------------------------------------ sesión (guardar dónde ibas)
 const SESSION_KEY = 'sudoku_academy_session_v1';
@@ -4046,7 +4086,10 @@ function bind() {
     saveSession();
     renderBoard(); renderFilterBar();
   });
-  $('updBar').addEventListener('click', e => { if (e.target.closest('[data-upd="later"]')) $('updBar').classList.add('hidden'); });
+  $('updBar').addEventListener('click', e => {
+    if (e.target.closest('[data-upd="later"]')) $('updBar').classList.add('hidden');
+    else if (e.target.closest('[data-upd="install"]')) instalarAqui();
+  });
   $('panel').addEventListener('click', onPanelClick);
   $('dock').addEventListener('click', e => {
     if (S.lpFired && e.target.closest('[data-rdigit]')) { S.lpFired = false; return; }

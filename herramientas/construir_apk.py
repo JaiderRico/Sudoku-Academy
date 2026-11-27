@@ -186,7 +186,7 @@ def pool_utf16(strs):
 
 ANDROID_NS = 'http://schemas.android.com/apk/res/android'
 ATTR_IDS = {'label': 0x01010001, 'icon': 0x01010002, 'name': 0x01010003, 'exported': 0x01010010,
-            'configChanges': 0x0101001f, 'minSdkVersion': 0x0101020c, 'versionCode': 0x0101021b,
+            'launchMode': 0x0101001d, 'configChanges': 0x0101001f, 'minSdkVersion': 0x0101020c, 'versionCode': 0x0101021b,
             'versionName': 0x0101021c, 'targetSdkVersion': 0x01010270, 'allowBackup': 0x01010280}
 T_REF, T_STR, T_DEC, T_HEX, T_BOOL = 0x01, 0x03, 0x10, 0x11, 0x12
 
@@ -194,8 +194,10 @@ def construir_manifest(version, codigo):
     arbol = ('manifest', [(None, 'package', T_STR, PAQUETE), ('a', 'versionCode', T_DEC, codigo), ('a', 'versionName', T_STR, version)], [
         ('uses-sdk', [('a', 'minSdkVersion', T_DEC, MIN_SDK), ('a', 'targetSdkVersion', T_DEC, TARGET_SDK)], []),
         ('uses-permission', [('a', 'name', T_STR, 'android.permission.INTERNET')], []),   # para buscar actualizaciones
+        ('uses-permission', [('a', 'name', T_STR, 'android.permission.REQUEST_INSTALL_PACKAGES')], []),   # actualizar sin salir de la app
         ('application', [('a', 'label', T_STR, NOMBRE_APP), ('a', 'icon', T_REF, 0x7f010000), ('a', 'allowBackup', T_BOOL, True)], [
             ('activity', [('a', 'name', T_STR, PAQUETE + '.MainActivity'), ('a', 'exported', T_BOOL, True),
+                          ('a', 'launchMode', T_DEC, 2),   # singleTask: la respuesta del instalador vuelve a esta misma pantalla
                           ('a', 'configChanges', T_HEX, 0x04a0)], [   # orientation|keyboardHidden|screenSize: girar no reinicia
                 ('intent-filter', [], [
                     ('action', [('a', 'name', T_STR, 'android.intent.action.MAIN')], []),
@@ -278,18 +280,19 @@ def main():
     ap.add_argument('--version', default=(RAIZ / 'version.txt').read_text().strip())
     ap.add_argument('--html', default=str(RAIZ / 'app' / 'index.html'))
     ap.add_argument('--icono', default=str(RAIZ / 'herramientas' / 'icono.png'))
+    ap.add_argument('--dex', help='classes.dex compilado de nativo/ (lo hace GitHub Actions). Sin él: MainActivity mínima sin actualizar dentro de la app')
     ap.add_argument('--salida', default=str(RAIZ / 'trabajo' / 'sin_firmar.apk'))
     a = ap.parse_args()
     ruta_icono = 'res/drawable/ic_launcher.png'
     pathlib.Path(a.salida).parent.mkdir(parents=True, exist_ok=True)
     escribir_apk(a.salida, [
         ('AndroidManifest.xml', construir_manifest(a.version, codigo_de_version(a.version)), True),
-        ('classes.dex', construir_dex(), True),
+        ('classes.dex', pathlib.Path(a.dex).read_bytes() if a.dex else construir_dex(), True),
         ('resources.arsc', construir_arsc(ruta_icono), False),   # Android 11+ exige que vaya sin comprimir y alineado
         (ruta_icono, pathlib.Path(a.icono).read_bytes(), False),
         ('assets/index.html', pathlib.Path(a.html).read_bytes().replace(b'__APP_VERSION__', a.version.encode()), True),
     ])
-    print(f'APK sin firmar: {a.salida}  (versión {a.version}, código {codigo_de_version(a.version)})')
+    print(f'APK sin firmar: {a.salida}  (versión {a.version}, código {codigo_de_version(a.version)}, dex: {a.dex or "mínimo"})')
 
 if __name__ == '__main__':
     main()
